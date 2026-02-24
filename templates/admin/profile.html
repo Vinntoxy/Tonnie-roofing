@@ -1254,12 +1254,12 @@
     
     <script>
         // Check authentication
-        document.addEventListener('DOMContentLoaded', function() {
-            const adminSession = localStorage.getItem('adminSession');
-            if (!adminSession) {
-                window.location.href = '/admin/login?error=unauthorized';
-                return;
-            }
+     //   document.addEventListener('DOMContentLoaded', function() {
+          //  const adminSession = localStorage.getItem('adminSession');
+          //  if (!adminSession) {
+              //  window.location.href = '/admin/login?error=unauthorized';
+            //    return;
+         //   }
             
             // Load saved theme
             const savedTheme = localStorage.getItem('adminTheme');
