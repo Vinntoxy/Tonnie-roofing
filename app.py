@@ -1,10 +1,9 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask_session import Session  # Critical for multi-worker support
 import json
 import os
 from datetime import datetime, timedelta
 from functools import wraps
-import hashlib
-import secrets
 import uuid
 import cloudinary
 import cloudinary.uploader
@@ -15,7 +14,29 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'tonnie-roofing-secret-key-change-this')
+
+# ========== PROPER SESSION CONFIGURATION ==========
+# Use a fixed secret key from environment
+app.secret_key = os.getenv('SECRET_KEY', 'tonnie-roofing-fixed-secret-key-2026-change-this')
+
+# Configure server-side session storage (solves multi-worker issues)
+app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions in files
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True  # Sign cookies to prevent tampering
+app.config['SESSION_FILE_DIR'] = '/tmp/flask-sessions'  # Render has writable /tmp
+app.config['SESSION_FILE_THRESHOLD'] = 100  # Max number of session files
+app.config['SESSION_KEY_PREFIX'] = 'tonnie_'  # Prefix for session keys
+
+# Session cookie settings
+app.config['SESSION_COOKIE_NAME'] = 'tonnie_session'
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS only
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # 7-day sessions
+
+# Initialize Flask-Session
+Session(app)
+# ==================================================
 
 # Configure Cloudinary
 cloudinary.config(
@@ -65,12 +86,12 @@ ROOFING_ESSENTIALS = [
     "Insulated Panel - 25mm", "Insulated Panel - 50mm", "Insulated Panel - 75mm", "Insulated Panel - 100mm"
 ]
 
-# Database helper functions
+# ========== DATABASE HELPER FUNCTIONS ==========
 def read_db():
     """Read data from JSON database"""
     try:
         if not os.path.exists(DB_PATH):
-            print(f"Database file not found at {DB_PATH}, creating default...")
+            print(f"📁 Database file not found at {DB_PATH}, creating default...")
             # Create default database structure with Antony as default admin
             default_db = {
                 "admins": [
@@ -80,6 +101,14 @@ def read_db():
                         "password": "antony123",
                         "full_name": "Antony Mutia",
                         "email": "antonymutie7@gmail.com",
+                        "created_at": datetime.now().isoformat()
+                    },
+                    {
+                        "id": "admin_002",
+                        "username": "admin",
+                        "password": "admin123",
+                        "full_name": "Admin User",
+                        "email": "admin@tonnieroofing.co.ke",
                         "created_at": datetime.now().isoformat()
                     }
                 ],
@@ -236,7 +265,7 @@ def read_db():
                     "devices": {}
                 },
                 "settings": {
-                    "admin_count": 1,
+                    "admin_count": 2,
                     "max_admins": 2
                 },
                 "mabati_options": MABATI_OPTIONS,
@@ -248,40 +277,31 @@ def read_db():
         
         with open(DB_PATH, 'r') as f:
             data = json.load(f)
-            print(f"Database read successfully. Admins: {len(data.get('admins', []))}")
+            print(f"✅ Database read successfully. Admins: {len(data.get('admins', []))}")
             return data
-    except json.JSONDecodeError as e:
-        print(f"❌ JSON Decode Error at line {e.lineno}, column {e.colno}: {e.msg}")
-        print(f"Error position: {e.pos}")
-        # Return minimal working data
-        return {
-            "admins": [{
-                "id": "admin_001",
-                "username": "antony",
-                "password": "antony123",
-                "full_name": "Antony Mutia",
-                "email": "antonymutie7@gmail.com",
-                "created_at": datetime.now().isoformat()
-            }],
-            "settings": {"admin_count": 1, "max_admins": 2},
-            "profile": {},
-            "services": [],
-            "projects": [],
-            "inquiries": [],
-            "visits": {}
-        }
     except Exception as e:
         print(f"❌ Error reading database: {str(e)}")
+        # Return minimal working data with default admin
         return {
-            "admins": [{
-                "id": "admin_001",
-                "username": "antony",
-                "password": "antony123",
-                "full_name": "Antony Mutia",
-                "email": "antonymutie7@gmail.com",
-                "created_at": datetime.now().isoformat()
-            }],
-            "settings": {"admin_count": 1, "max_admins": 2},
+            "admins": [
+                {
+                    "id": "admin_001",
+                    "username": "antony",
+                    "password": "antony123",
+                    "full_name": "Antony Mutia",
+                    "email": "antonymutie7@gmail.com",
+                    "created_at": datetime.now().isoformat()
+                },
+                {
+                    "id": "admin_002",
+                    "username": "admin",
+                    "password": "admin123",
+                    "full_name": "Admin User",
+                    "email": "admin@tonnieroofing.co.ke",
+                    "created_at": datetime.now().isoformat()
+                }
+            ],
+            "settings": {"admin_count": 2, "max_admins": 2},
             "profile": {},
             "services": [],
             "projects": [],
@@ -294,13 +314,13 @@ def write_db(data):
     try:
         with open(DB_PATH, 'w') as f:
             json.dump(data, f, indent=2)
-        print(f"Database written successfully. Admins: {len(data.get('admins', []))}")
+        print(f"✅ Database written successfully")
         return True
     except Exception as e:
         print(f"❌ Error writing database: {str(e)}")
         return False
 
-# Cloudinary helper functions
+# ========== CLOUDINARY HELPER FUNCTIONS ==========
 def get_cloudinary_url(public_id, transformation=None):
     """Generate Cloudinary URL for an image"""
     if not public_id:
@@ -341,7 +361,6 @@ def delete_from_cloudinary(public_id):
         print(f"Cloudinary delete error: {e}")
         return False
 
-# Update image URLs in database
 def process_image_urls(data):
     """Convert Cloudinary public_ids to full URLs"""
     if 'profile' in data:
@@ -370,17 +389,17 @@ def process_image_urls(data):
                         img['thumbnail_url'] = get_cloudinary_url(img['thumbnail'], {'width': 100, 'height': 70, 'crop': 'fill'})
     return data
 
-# Admin required decorator
+# ========== AUTHENTICATION DECORATOR ==========
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('admin_logged_in'):
+            print("❌ No session found, redirecting to login")
             return redirect(url_for('admin_login'))
         return f(*args, **kwargs)
     return decorated_function
 
-# ==================== PUBLIC ROUTES ====================
-
+# ========== PUBLIC ROUTES ==========
 @app.route('/')
 def index():
     data = read_db()
@@ -444,51 +463,55 @@ def contact():
                          mabati_options=data.get('mabati_options', MABATI_OPTIONS),
                          roofing_essentials=data.get('roofing_essentials', ROOFING_ESSENTIALS))
 
-# ==================== ADMIN AUTH ROUTES ====================
-
+# ========== ADMIN AUTH ROUTES ==========
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     data = read_db()
-    
-    # Ensure admin_count matches actual admins
-    data['settings']['admin_count'] = len(data.get('admins', []))
-    write_db(data)
     
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         
-        print(f"Login attempt - Username: {username}")
-        print(f"Current admins in DB: {len(data.get('admins', []))}")
+        print(f"🔐 Login attempt - Username: {username}")
         
-        # Check credentials
+        # Find admin
+        admin_user = None
         for admin in data.get('admins', []):
-            print(f"Checking against: {admin['username']}")
             if admin['username'] == username and admin['password'] == password:
-                session['admin_logged_in'] = True
-                session['admin_id'] = admin['id']
-                session['admin_username'] = username
-                session['admin_name'] = admin.get('full_name', username)
-                print(f"✅ Login successful for: {username}")
-                return redirect(url_for('admin_dashboard'))
+                admin_user = admin
+                break
         
-        print(f"❌ Login failed for: {username}")
-        return render_template('admin/login.html', 
-                             error='Invalid username or password',
-                             admin_count=data['settings']['admin_count'], 
-                             max_admins=data['settings']['max_admins'])
-    
-    # Check for success message from account creation
-    account_created = request.args.get('account') == 'created'
+        if admin_user:
+            # Clear any existing session first
+            session.clear()
+            
+            # Set session variables
+            session['admin_logged_in'] = True
+            session['admin_id'] = admin_user['id']
+            session['admin_username'] = username
+            session['admin_name'] = admin_user.get('full_name', username)
+            
+            # Make session permanent (7 days)
+            session.permanent = True
+            
+            print(f"✅ Login successful for: {username}")
+            return redirect(url_for('admin_dashboard'))
+        else:
+            print(f"❌ Login failed for: {username}")
+            return render_template('admin/login.html', 
+                                 error='Invalid username or password',
+                                 admin_count=data['settings'].get('admin_count', 0), 
+                                 max_admins=data['settings'].get('max_admins', 2))
     
     return render_template('admin/login.html', 
-                         admin_count=data['settings']['admin_count'], 
-                         max_admins=data['settings']['max_admins'],
-                         account_created=account_created)
+                         admin_count=data['settings'].get('admin_count', 0), 
+                         max_admins=data['settings'].get('max_admins', 2))
 
 @app.route('/admin/logout')
 def admin_logout():
+    username = session.get('admin_username', 'Unknown')
     session.clear()
+    print(f"👋 Logout for: {username}")
     return redirect(url_for('admin_login'))
 
 @app.route('/admin/create-account', methods=['GET', 'POST'])
@@ -500,22 +523,19 @@ def admin_create_account():
     
     if request.method == 'POST':
         try:
-            # Get form data
             username = request.form.get('username')
             password = request.form.get('password')
             full_name = request.form.get('fullName')
             email = request.form.get('email')
             
-            print(f"Creating account for: {username}")
-            
-            # Validate required fields
+            # Validate
             if not all([username, password, full_name, email]):
                 return render_template('admin/create-account.html', 
                                      error='All fields are required',
                                      current_count=data['settings']['admin_count'],
                                      max_count=data['settings']['max_admins'])
             
-            # Check if username already exists
+            # Check if username exists
             for admin in data.get('admins', []):
                 if admin['username'] == username:
                     return render_template('admin/create-account.html', 
@@ -533,19 +553,17 @@ def admin_create_account():
                 'created_at': datetime.now().isoformat()
             }
             
-            # Add to database
             if 'admins' not in data:
                 data['admins'] = []
             data['admins'].append(new_admin)
             data['settings']['admin_count'] = len(data['admins'])
             
-            # Write to file
             if write_db(data):
-                print(f"✅ Account created. New count: {data['settings']['admin_count']}")
+                print(f"✅ Account created for: {username}")
                 return redirect(url_for('admin_login', account='created'))
             else:
                 return render_template('admin/create-account.html', 
-                                     error='Failed to save account. Please try again.',
+                                     error='Failed to save account',
                                      current_count=data['settings']['admin_count'],
                                      max_count=data['settings']['max_admins'])
             
@@ -560,8 +578,7 @@ def admin_create_account():
                          current_count=data['settings']['admin_count'],
                          max_count=data['settings']['max_admins'])
 
-# ==================== ADMIN PROTECTED ROUTES ====================
-
+# ========== ADMIN PROTECTED ROUTES ==========
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
@@ -640,12 +657,10 @@ def admin_analytics():
     data = read_db()
     return render_template('admin/analytics.html', visits=data.get('visits', {}))
 
-# ==================== CLOUDINARY API ROUTES ====================
-
+# ========== CLOUDINARY API ROUTES ==========
 @app.route('/admin/upload-image', methods=['POST'])
 @admin_required
 def upload_image():
-    """Handle image upload to Cloudinary"""
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
     
@@ -669,7 +684,6 @@ def upload_image():
 @app.route('/admin/delete-image', methods=['POST'])
 @admin_required
 def delete_image():
-    """Delete image from Cloudinary"""
     data = request.get_json()
     public_id = data.get('public_id')
     
@@ -681,197 +695,6 @@ def delete_image():
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'Delete failed'}), 500
-
-# ==================== DEBUG ROUTES (REMOVE IN PRODUCTION) ====================
-
-@app.route('/debug/db-status')
-def debug_db_status():
-    """Check if database exists and has admins"""
-    data = read_db()
-    
-    html = """
-    <html>
-    <head>
-        <title>Database Debug</title>
-        <style>
-            body { font-family: Arial; padding: 2rem; background: #f5f5f5; }
-            .container { max-width: 800px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-            h1 { color: #d97706; }
-            .success { color: green; font-weight: bold; }
-            .error { color: red; font-weight: bold; }
-            pre { background: #f0f0f0; padding: 1rem; border-radius: 5px; overflow: auto; }
-            .btn { display: inline-block; padding: 0.5rem 1rem; background: #d97706; color: white; text-decoration: none; border-radius: 5px; margin-right: 0.5rem; }
-            .btn:hover { background: #b45f06; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🔍 Database Debug Info</h1>
-    """
-    
-    html += f"<p><strong>Database path:</strong> {DB_PATH}</p>"
-    html += f"<p><strong>File exists:</strong> {os.path.exists(DB_PATH)}</p>"
-    
-    try:
-        admins = data.get('admins', [])
-        html += f"<p><strong>Total admins in DB:</strong> {len(admins)}</p>"
-        
-        if admins:
-            html += "<h2>Admins:</h2><ul>"
-            for admin in admins:
-                html += f"<li>👤 <strong>Username:</strong> {admin.get('username', 'N/A')} | <strong>Password:</strong> {admin.get('password', 'N/A')} | <strong>Name:</strong> {admin.get('full_name', 'N/A')}</li>"
-            html += "</ul>"
-        else:
-            html += "<p class='error'>⚠️ No admins found in database!</p>"
-        
-        html += f"<p><strong>Admin count setting:</strong> {data.get('settings', {}).get('admin_count', 0)}</p>"
-        html += f"<p><strong>Max admins:</strong> {data.get('settings', {}).get('max_admins', 2)}</p>"
-        
-    except Exception as e:
-        html += f"<p class='error'>❌ Error reading data: {str(e)}</p>"
-    
-    html += """
-        <div style="margin-top: 2rem;">
-            <a href="/admin/login" class="btn">Go to Login</a>
-            <a href="/debug/create-test-admin" class="btn">Create Test Admin</a>
-            <a href="/debug/fix-admin" class="btn">Fix Antony Admin</a>
-            <a href="/debug/reset-db" class="btn">Reset Database</a>
-        </div>
-        </div>
-    </body>
-    </html>
-    """
-    return html
-
-@app.route('/debug/create-test-admin')
-def debug_create_test_admin():
-    """Create a test admin account"""
-    data = read_db()
-    
-    # Check if test admin already exists
-    for admin in data.get('admins', []):
-        if admin['username'] == 'test':
-            return redirect('/debug/db-status')
-    
-    # Create test admin
-    test_admin = {
-        'id': str(uuid.uuid4()),
-        'username': 'test',
-        'password': 'test123',
-        'full_name': 'Test User',
-        'email': 'test@example.com',
-        'created_at': datetime.now().isoformat()
-    }
-    
-    if 'admins' not in data:
-        data['admins'] = []
-    data['admins'].append(test_admin)
-    data['settings']['admin_count'] = len(data['admins'])
-    write_db(data)
-    
-    return redirect('/debug/db-status')
-
-@app.route('/debug/fix-admin')
-def debug_fix_admin():
-    """Force create Antony admin account"""
-    data = read_db()
-    
-    # Remove any existing antony admin
-    if 'admins' in data:
-        data['admins'] = [a for a in data['admins'] if a.get('username') != 'antony']
-    else:
-        data['admins'] = []
-    
-    # Create fresh antony admin
-    antony_admin = {
-        'id': str(uuid.uuid4()),
-        'username': 'antony',
-        'password': 'antony123',
-        'full_name': 'Antony Mutia',
-        'email': 'antonymutie7@gmail.com',
-        'created_at': datetime.now().isoformat()
-    }
-    
-    data['admins'].append(antony_admin)
-    data['settings']['admin_count'] = len(data['admins'])
-    write_db(data)
-    
-    return redirect('/debug/db-status')
-
-@app.route('/debug/reset-db')
-def debug_reset_db():
-    """Reset database to minimal working state"""
-    # Create minimal working DB with Antony admin
-    minimal_db = {
-        "admins": [
-            {
-                "id": "admin_001",
-                "username": "antony",
-                "password": "antony123",
-                "full_name": "Antony Mutia",
-                "email": "antonymutie7@gmail.com",
-                "created_at": datetime.now().isoformat()
-            }
-        ],
-        "settings": {
-            "admin_count": 1,
-            "max_admins": 2
-        },
-        "profile": {},
-        "services": [],
-        "projects": [],
-        "inquiries": [],
-        "visits": {},
-        "mabati_options": MABATI_OPTIONS,
-        "roofing_essentials": ROOFING_ESSENTIALS,
-        "kenyan_counties": KENYAN_COUNTIES
-    }
-    
-    if write_db(minimal_db):
-        return redirect('/debug/db-status')
-    else:
-        return "❌ Failed to reset database"
-
-@app.route('/debug/force-logout')
-def force_logout():
-    """Clear session and localStorage instructions"""
-    session.clear()
-    return '''
-    <html>
-    <head>
-        <title>Session Cleared</title>
-        <style>
-            body { font-family: Arial; padding: 2rem; background: #f5f5f5; text-align: center; }
-            .container { max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-            h1 { color: #d97706; }
-            .success { color: green; font-size: 1.2rem; margin: 1rem; }
-            button { padding: 0.8rem 1.5rem; background: #d97706; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; }
-            button:hover { background: #b45f06; }
-            .steps { text-align: left; max-width: 400px; margin: 2rem auto; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>✅ Server Session Cleared</h1>
-            <div class="success">Your admin session has been cleared from the server</div>
-            <p>Now clear your browser's localStorage:</p>
-            <div class="steps">
-                <ol>
-                    <li>Open Developer Tools (F12)</li>
-                    <li>Go to Console tab</li>
-                    <li>Type: <code>localStorage.clear()</code></li>
-                    <li>Press Enter</li>
-                    <li>Refresh this page</li>
-                </ol>
-            </div>
-            <button onclick="localStorage.clear(); window.location.href='/admin/login'">
-                Clear Local Storage & Go to Login
-            </button>
-            <p style="margin-top: 1rem;"><a href="/admin/login">Go to Login Page</a></p>
-        </div>
-    </body>
-    </html>
-    '''
 
 if __name__ == '__main__':
     app.run(debug=True)
