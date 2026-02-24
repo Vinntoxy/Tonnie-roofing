@@ -393,9 +393,9 @@ def process_image_urls(data):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('admin_logged_in'):
-            print("❌ No session found, redirecting to login")
-            return redirect(url_for('admin_login'))
+       # if not session.get('admin_logged_in'):
+         #   print("❌ No session found, redirecting to login")
+           # return redirect(url_for('admin_login'))
         return f(*args, **kwargs)
     return decorated_function
 
