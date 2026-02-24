@@ -583,4 +583,118 @@ def delete_image():
         return jsonify({'error': 'Delete failed'}), 500
 
 if __name__ == '__main__':
+
+    @app.route('/debug/db-status')
+def debug_db_status():
+    """Check if database exists and has admins"""
+    import os
+    data = read_db()
+    
+    html = "<h1>🔍 Database Debug Info</h1>"
+    html += f"<p>Database file exists: {os.path.exists(DB_PATH)}</p>"
+    html += f"<p>Database path: {DB_PATH}</p>"
+    
+    try:
+        html += f"<p>Total admins in DB: {len(data['admins'])}</p>"
+        html += "<h2>Admins:</h2><ul>"
+        for admin in data['admins']:
+            html += f"<li>👤 Username: <strong>{admin['username']}</strong> | Password: {admin['password']} | Name: {admin.get('full_name', 'N/A')}</li>"
+        html += "</ul>"
+        
+        html += f"<p>Admin count setting: {data['settings']['admin_count']}</p>"
+        html += f"<p>Max admins: {data['settings']['max_admins']}</p>"
+        
+    except Exception as e:
+        html += f"<p style='color:red'>Error reading data: {str(e)}</p>"
+    
+    html += "<p><a href='/admin/login'>Try Login</a> | <a href='/debug/create-test-admin'>Create Test Admin</a></p>"
+    return html
+
+@app.route('/debug/create-test-admin')
+def debug_create_test_admin():
+    """Create a test admin account"""
+    data = read_db()
+    
+    # Check if test admin already exists
+    for admin in data['admins']:
+        if admin['username'] == 'test':
+            return "Test admin already exists. Username: test, Password: test123"
+    
+    # Create test admin
+    test_admin = {
+        'id': str(uuid.uuid4()),
+        'username': 'test',
+        'password': 'test123',
+        'full_name': 'Test User',
+        'email': 'test@example.com',
+        'created_at': datetime.now().isoformat()
+    }
+    
+    data['admins'].append(test_admin)
+    data['settings']['admin_count'] = len(data['admins'])
+    write_db(data)
+    
+    return "✅ Test admin created! Username: test, Password: test123<br><a href='/debug/db-status'>Check DB Status</a>"
+
+@app.route('/debug/fix-admin')
+def debug_fix_admin():
+    """Force create Antony admin account"""
+    data = read_db()
+    
+    # Remove any existing antony admin
+    data['admins'] = [a for a in data['admins'] if a['username'] != 'antony']
+    
+    # Create fresh antony admin
+    antony_admin = {
+        'id': str(uuid.uuid4()),
+        'username': 'antony',
+        'password': 'antony123',
+        'full_name': 'Antony Mutia',
+        'email': 'antonymutie7@gmail.com',
+        'created_at': datetime.now().isoformat()
+    }
+    
+    data['admins'].append(antony_admin)
+    data['settings']['admin_count'] = len(data['admins'])
+    write_db(data)
+    
+    return "✅ Antony admin created! Username: antony, Password: antony123<br><a href='/debug/db-status'>Check DB Status</a>"
+
+@app.route('/debug/reset-db')
+def debug_reset_db():
+    """Reset database to minimal working state"""
+    import os
+    
+    # Backup current DB
+    if os.path.exists(DB_PATH):
+        os.rename(DB_PATH, DB_PATH + '.backup')
+    
+    # Create minimal working DB
+    minimal_db = {
+        "admins": [
+            {
+                "id": "admin_001",
+                "username": "antony",
+                "password": "antony123",
+                "full_name": "Antony Mutia",
+                "email": "antonymutie7@gmail.com",
+                "created_at": datetime.now().isoformat()
+            }
+        ],
+        "settings": {
+            "admin_count": 1,
+            "max_admins": 2
+        },
+        "profile": {},
+        "services": [],
+        "projects": [],
+        "inquiries": [],
+        "visits": {},
+        "mabati_options": [],
+        "roofing_essentials": [],
+        "kenyan_counties": []
+    }
+    
+    write_db(minimal_db)
+    return "✅ Database reset with Antony admin! Username: antony, Password: antony123<br><a href='/debug/db-status'>Check DB Status</a>"
     app.run(debug=True)
