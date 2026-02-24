@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-from flask_session import Session  # Critical for multi-worker support
+from flask_session import Session
 import json
 import os
 from datetime import datetime, timedelta
@@ -8,6 +8,10 @@ import uuid
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+import requests
+import tempfile
+import hashlib
+import shutil
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -15,30 +19,25 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# ========== PROPER SESSION CONFIGURATION ==========
-# Use a fixed secret key from environment
+# ========== SESSION CONFIGURATION ==========
 app.secret_key = os.getenv('SECRET_KEY', 'tonnie-roofing-fixed-secret-key-2026-change-this')
 
-# Configure server-side session storage (solves multi-worker issues)
-app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions in files
+app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
-app.config['SESSION_USE_SIGNER'] = True  # Sign cookies to prevent tampering
-app.config['SESSION_FILE_DIR'] = '/tmp/flask-sessions'  # Render has writable /tmp
-app.config['SESSION_FILE_THRESHOLD'] = 100  # Max number of session files
-app.config['SESSION_KEY_PREFIX'] = 'tonnie_'  # Prefix for session keys
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_FILE_DIR'] = '/tmp/flask-sessions'
+app.config['SESSION_FILE_THRESHOLD'] = 100
+app.config['SESSION_KEY_PREFIX'] = 'tonnie_'
 
-# Session cookie settings
 app.config['SESSION_COOKIE_NAME'] = 'tonnie_session'
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS only
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # 7-day sessions
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
-# Initialize Flask-Session
 Session(app)
-# ==================================================
 
-# Configure Cloudinary
+# ========== CLOUDINARY CONFIGURATION ==========
 cloudinary.config(
     cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
     api_key=os.getenv('CLOUDINARY_API_KEY'),
@@ -46,11 +45,13 @@ cloudinary.config(
     secure=True
 )
 
-# Database file path - use absolute path for Render
+# ========== DATABASE PATHS ==========
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'database.json')
+RUNTIME_DB_PATH = '/tmp/database.json'  # Writable location on Render
+CLOUDINARY_DB_PATH = 'tonnie-roofing/database.json'  # Cloudinary public ID
+TEMPLATE_DB_PATH = os.path.join(BASE_DIR, 'database.template.json')  # Backup template
 
-# Kenyan counties list
+# ========== KENYAN COUNTIES ==========
 KENYAN_COUNTIES = [
     "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo Marakwet", "Embu", "Garissa",
     "Homa Bay", "Isiolo", "Kajiado", "Kakamega", "Kericho", "Kiambu", "Kilifi",
@@ -61,7 +62,7 @@ KENYAN_COUNTIES = [
     "Trans Nzoia", "Turkana", "Uasin Gishu", "Vihiga", "Wajir", "West Pokot"
 ]
 
-# Mabati options
+# ========== MABATI OPTIONS ==========
 MABATI_OPTIONS = [
     "Dumu Zas - 28 Gauge", "Dumu Zas - 26 Gauge", "Dumu Zas - 30 Gauge",
     "Versatile - 28 Gauge", "Versatile - 26 Gauge",
@@ -75,7 +76,7 @@ MABATI_OPTIONS = [
     "Zincalume", "Heritage Shingles", "Others"
 ]
 
-# Roofing essentials
+# ========== ROOFING ESSENTIALS ==========
 ROOFING_ESSENTIALS = [
     "Half Round Gutters - 0.45mm", "Half Round Gutters - 0.5mm",
     "Box Gutters - 0.5mm", "Box Gutters - 0.6mm", "Ogee Gutters",
@@ -86,241 +87,332 @@ ROOFING_ESSENTIALS = [
     "Insulated Panel - 25mm", "Insulated Panel - 50mm", "Insulated Panel - 75mm", "Insulated Panel - 100mm"
 ]
 
-# ========== DATABASE HELPER FUNCTIONS ==========
-def read_db():
-    """Read data from JSON database"""
-    try:
-        if not os.path.exists(DB_PATH):
-            print(f"📁 Database file not found at {DB_PATH}, creating default...")
-            # Create default database structure with Antony as default admin
-            default_db = {
-                "admins": [
-                    {
-                        "id": "admin_001",
-                        "username": "antony",
-                        "password": "antony123",
-                        "full_name": "Antony Mutia",
-                        "email": "antonymutie7@gmail.com",
-                        "created_at": datetime.now().isoformat()
-                    },
-                    {
-                        "id": "admin_002",
-                        "username": "admin",
-                        "password": "admin123",
-                        "full_name": "Admin User",
-                        "email": "admin@tonnieroofing.co.ke",
-                        "created_at": datetime.now().isoformat()
-                    }
-                ],
-                "profile": {
-                    "company_name": "Tonnie Roofing",
-                    "company_logo": "tonnie-roofing/profile/logo",
-                    "hero_image": "tonnie-roofing/thumbnails/hero",
-                    "tagline": "Professional Roofing & Interior Design Services",
-                    "description": "Your trusted partner in quality construction. We provide professional roofing, interior design, and repair services across Kenya.",
-                    "ceo": {
-                        "name": "Antony Mutia",
-                        "photo": "tonnie-roofing/profile/ceo",
-                        "title": "Founder & CEO",
-                        "bio": "Antony Mutia is the founder and CEO of Tonnie Roofing, with extensive experience in the construction industry.",
-                        "phone": "0712454146",
-                        "email": "antonymutie7@gmail.com"
-                    },
-                    "active_since": "2015",
-                    "contact": {
-                        "phone": "0712454146",
-                        "whatsapp": "0712454146",
-                        "emergency": "0712454146",
-                        "email": "antonymutie7@gmail.com",
-                        "email2": "info@tonnieroofing.co.ke"
-                    },
-                    "social": [
-                        {"platform": "Facebook", "icon": "📘", "url": "https://facebook.com/tonnieroofing", "app_url": "fb://page/tonnieroofing", "active": True},
-                        {"platform": "TikTok", "icon": "🎵", "url": "https://tiktok.com/@tonnieroofing", "app_url": "tiktok://@tonnieroofing", "active": True},
-                        {"platform": "Instagram", "icon": "📷", "url": "https://instagram.com/tonnieroofing", "app_url": "instagram://user?username=tonnieroofing", "active": True},
-                        {"platform": "WhatsApp", "icon": "💬", "url": "https://wa.me/254712454146", "app_url": "whatsapp://send?phone=254712454146", "active": True}
-                    ],
-                    "address": {
-                        "street": "Kilimani Business Centre",
-                        "city": "Nairobi",
-                        "county": "Nairobi",
-                        "country": "Kenya",
-                        "po_box": "PO Box 12345-00100"
-                    },
-                    "hours": {
-                        "weekdays": "8:00 AM - 6:00 PM",
-                        "saturday": "9:00 AM - 3:00 PM",
-                        "sunday": "Closed",
-                        "emergency": "Call 0712454146",
-                        "repairs": "Monday to Friday, 8:00 AM - 6:00 PM"
-                    },
-                    "stats": {
-                        "projects_completed": 250,
-                        "happy_clients": 150,
-                        "years_experience": 8,
-                        "skilled_workers": 25,
-                        "counties_served": 47
-                    }
-                },
-                "services": [
-                    {
-                        "id": "serv_001",
-                        "name": "Roofing",
-                        "slug": "roofing",
-                        "icon": "🏠",
-                        "image": "tonnie-roofing/thumbnails/roofing",
-                        "detail_image": "tonnie-roofing/thumbnails/roofing-detail",
-                        "short_description": "Professional roof installation and maintenance",
-                        "full_description": "Complete roofing solutions for residential and commercial properties using quality Kenyan mabati.",
-                        "features": [
-                            "New roof installation",
-                            "Roof replacement & renovation",
-                            "Leak repairs & maintenance",
-                            "Roof inspections & assessments",
-                            "Multiple mabati options"
-                        ],
-                        "active": True,
-                        "project_count": 24,
-                        "inquiry_count": 12,
-                        "image_count": 3,
-                        "color": "#0066cc",
-                        "order": 1
-                    },
-                    {
-                        "id": "serv_002",
-                        "name": "Interior Design",
-                        "slug": "interior",
-                        "icon": "✨",
-                        "image": "tonnie-roofing/thumbnails/interior",
-                        "detail_image": "tonnie-roofing/thumbnails/interior-detail",
-                        "short_description": "Modern interior design solutions",
-                        "full_description": "Transform your spaces with gypsum installations, custom fittings, and modern interior designs.",
-                        "features": [
-                            "Gypsum ceiling installations",
-                            "Custom wall fittings & partitions",
-                            "Modern interior finishing",
-                            "Space planning & design",
-                            "Lighting design"
-                        ],
-                        "active": True,
-                        "project_count": 12,
-                        "inquiry_count": 8,
-                        "image_count": 2,
-                        "color": "#7b1fa2",
-                        "order": 2
-                    },
-                    {
-                        "id": "serv_003",
-                        "name": "Repairs",
-                        "slug": "repairs",
-                        "icon": "🔧",
-                        "image": "tonnie-roofing/thumbnails/repairs",
-                        "detail_image": "tonnie-roofing/thumbnails/repairs-detail",
-                        "short_description": "Professional repair services",
-                        "full_description": "Quick response and reliable repair services for roofing, ceilings, and structural issues.",
-                        "features": [
-                            "Roof leak repairs",
-                            "Ceiling & wall repairs",
-                            "Structural damage fixes",
-                            "Regular maintenance packages",
-                            "Working days only (Mon-Fri)"
-                        ],
-                        "active": True,
-                        "project_count": 8,
-                        "inquiry_count": 15,
-                        "image_count": 2,
-                        "color": "#c62828",
-                        "order": 3
-                    },
-                    {
-                        "id": "serv_004",
-                        "name": "Quoting Service",
-                        "slug": "quoting",
-                        "icon": "📋",
-                        "image": "tonnie-roofing/thumbnails/quoting",
-                        "detail_image": "tonnie-roofing/thumbnails/quoting-detail",
-                        "short_description": "Detailed project quotes",
-                        "full_description": "Get accurate, detailed quotes for your roofing and interior design projects.",
-                        "features": [
-                            "Detailed project assessment",
-                            "Material quantity calculations",
-                            "Labor cost estimation",
-                            "Timeline projections",
-                            "Free consultation (working days)"
-                        ],
-                        "active": True,
-                        "project_count": 4,
-                        "inquiry_count": 20,
-                        "image_count": 1,
-                        "color": "#ef6c00",
-                        "order": 4
-                    }
-                ],
-                "projects": [],
-                "inquiries": [],
-                "visits": {
-                    "total": 0,
-                    "monthly": {},
-                    "daily": {},
-                    "devices": {}
-                },
-                "settings": {
-                    "admin_count": 2,
-                    "max_admins": 2
-                },
-                "mabati_options": MABATI_OPTIONS,
-                "roofing_essentials": ROOFING_ESSENTIALS,
-                "kenyan_counties": KENYAN_COUNTIES
-            }
-            write_db(default_db)
-            return default_db
-        
-        with open(DB_PATH, 'r') as f:
-            data = json.load(f)
-            print(f"✅ Database read successfully. Admins: {len(data.get('admins', []))}")
-            return data
-    except Exception as e:
-        print(f"❌ Error reading database: {str(e)}")
-        # Return minimal working data with default admin
-        return {
-            "admins": [
-                {
-                    "id": "admin_001",
-                    "username": "antony",
-                    "password": "antony123",
-                    "full_name": "Antony Mutia",
-                    "email": "antonymutie7@gmail.com",
-                    "created_at": datetime.now().isoformat()
-                },
-                {
-                    "id": "admin_002",
-                    "username": "admin",
-                    "password": "admin123",
-                    "full_name": "Admin User",
-                    "email": "admin@tonnieroofing.co.ke",
-                    "created_at": datetime.now().isoformat()
-                }
-            ],
-            "settings": {"admin_count": 2, "max_admins": 2},
-            "profile": {},
-            "services": [],
-            "projects": [],
-            "inquiries": [],
-            "visits": {}
-        }
+# ========== CLOUDINARY DATABASE FUNCTIONS ==========
 
-def write_db(data):
-    """Write data to JSON database"""
+def download_from_cloudinary():
+    """Download database from Cloudinary"""
     try:
-        with open(DB_PATH, 'w') as f:
-            json.dump(data, f, indent=2)
-        print(f"✅ Database written successfully")
+        url = cloudinary.utils.cloudinary_url(
+            CLOUDINARY_DB_PATH,
+            resource_type='raw',
+            secure=True
+        )[0]
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            print(f"✅ Database downloaded from Cloudinary")
+            return response.json()
+        else:
+            print(f"⚠️ No database found in Cloudinary (status: {response.status_code})")
+            return None
+    except Exception as e:
+        print(f"⚠️ Could not download from Cloudinary: {e}")
+        return None
+
+def upload_to_cloudinary(data):
+    """Upload database to Cloudinary"""
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
+            json.dump(data, tmp, indent=2)
+            tmp_path = tmp.name
+        
+        result = cloudinary.uploader.upload(
+            tmp_path,
+            public_id=CLOUDINARY_DB_PATH,
+            resource_type='raw',
+            overwrite=True
+        )
+        os.unlink(tmp_path)
+        print(f"✅ Database backed up to Cloudinary: {result['secure_url']}")
         return True
     except Exception as e:
-        print(f"❌ Error writing database: {str(e)}")
+        print(f"❌ Cloudinary backup failed: {e}")
         return False
 
-# ========== CLOUDINARY HELPER FUNCTIONS ==========
+def create_default_database():
+    """Create default database structure"""
+    print("📁 Creating new default database...")
+    return {
+        "admins": [
+            {
+                "id": "admin_001",
+                "username": "antony",
+                "password": "antony123",
+                "full_name": "Antony Mutia",
+                "email": "antonymutie7@gmail.com",
+                "created_at": datetime.now().isoformat()
+            },
+            {
+                "id": "admin_002",
+                "username": "admin",
+                "password": "admin123",
+                "full_name": "Admin User",
+                "email": "admin@tonnieroofing.co.ke",
+                "created_at": datetime.now().isoformat()
+            }
+        ],
+        "profile": {
+            "company_name": "Tonnie Roofing",
+            "company_logo": "tonnie-roofing/profile/logo",
+            "hero_image": "tonnie-roofing/thumbnails/hero",
+            "tagline": "Professional Roofing & Interior Design Services",
+            "description": "Your trusted partner in quality construction. We provide professional roofing, interior design, and repair services across Kenya.",
+            "ceo": {
+                "name": "Antony Mutia",
+                "photo": "tonnie-roofing/profile/ceo",
+                "title": "Founder & CEO",
+                "bio": "Antony Mutia is the founder and CEO of Tonnie Roofing, with extensive experience in the construction industry.",
+                "phone": "0712454146",
+                "email": "antonymutie7@gmail.com"
+            },
+            "active_since": "2015",
+            "contact": {
+                "phone": "0712454146",
+                "whatsapp": "0712454146",
+                "emergency": "0712454146",
+                "email": "antonymutie7@gmail.com",
+                "email2": "info@tonnieroofing.co.ke"
+            },
+            "social": [
+                {"platform": "Facebook", "icon": "📘", "url": "https://facebook.com/tonnieroofing", "app_url": "fb://page/tonnieroofing", "active": True},
+                {"platform": "TikTok", "icon": "🎵", "url": "https://tiktok.com/@tonnieroofing", "app_url": "tiktok://@tonnieroofing", "active": True},
+                {"platform": "Instagram", "icon": "📷", "url": "https://instagram.com/tonnieroofing", "app_url": "instagram://user?username=tonnieroofing", "active": True},
+                {"platform": "WhatsApp", "icon": "💬", "url": "https://wa.me/254712454146", "app_url": "whatsapp://send?phone=254712454146", "active": True}
+            ],
+            "address": {
+                "street": "Kilimani Business Centre",
+                "city": "Nairobi",
+                "county": "Nairobi",
+                "country": "Kenya",
+                "po_box": "PO Box 12345-00100"
+            },
+            "hours": {
+                "weekdays": "8:00 AM - 6:00 PM",
+                "saturday": "9:00 AM - 3:00 PM",
+                "sunday": "Closed",
+                "emergency": "Call 0712454146",
+                "repairs": "Monday to Friday, 8:00 AM - 6:00 PM"
+            },
+            "stats": {
+                "projects_completed": 250,
+                "happy_clients": 150,
+                "years_experience": 8,
+                "skilled_workers": 25,
+                "counties_served": 47
+            }
+        },
+        "services": [
+            {
+                "id": "serv_001",
+                "name": "Roofing",
+                "slug": "roofing",
+                "icon": "🏠",
+                "image": "tonnie-roofing/thumbnails/roofing",
+                "detail_image": "tonnie-roofing/thumbnails/roofing-detail",
+                "short_description": "Professional roof installation and maintenance",
+                "full_description": "Complete roofing solutions for residential and commercial properties using quality Kenyan mabati.",
+                "features": [
+                    "New roof installation",
+                    "Roof replacement & renovation",
+                    "Leak repairs & maintenance",
+                    "Roof inspections & assessments",
+                    "Multiple mabati options"
+                ],
+                "active": True,
+                "project_count": 24,
+                "inquiry_count": 12,
+                "image_count": 3,
+                "color": "#0066cc",
+                "order": 1
+            },
+            {
+                "id": "serv_002",
+                "name": "Interior Design",
+                "slug": "interior",
+                "icon": "✨",
+                "image": "tonnie-roofing/thumbnails/interior",
+                "detail_image": "tonnie-roofing/thumbnails/interior-detail",
+                "short_description": "Modern interior design solutions",
+                "full_description": "Transform your spaces with gypsum installations, custom fittings, and modern interior designs.",
+                "features": [
+                    "Gypsum ceiling installations",
+                    "Custom wall fittings & partitions",
+                    "Modern interior finishing",
+                    "Space planning & design",
+                    "Lighting design"
+                ],
+                "active": True,
+                "project_count": 12,
+                "inquiry_count": 8,
+                "image_count": 2,
+                "color": "#7b1fa2",
+                "order": 2
+            },
+            {
+                "id": "serv_003",
+                "name": "Repairs",
+                "slug": "repairs",
+                "icon": "🔧",
+                "image": "tonnie-roofing/thumbnails/repairs",
+                "detail_image": "tonnie-roofing/thumbnails/repairs-detail",
+                "short_description": "Professional repair services",
+                "full_description": "Quick response and reliable repair services for roofing, ceilings, and structural issues.",
+                "features": [
+                    "Roof leak repairs",
+                    "Ceiling & wall repairs",
+                    "Structural damage fixes",
+                    "Regular maintenance packages",
+                    "Working days only (Mon-Fri)"
+                ],
+                "active": True,
+                "project_count": 8,
+                "inquiry_count": 15,
+                "image_count": 2,
+                "color": "#c62828",
+                "order": 3
+            },
+            {
+                "id": "serv_004",
+                "name": "Quoting Service",
+                "slug": "quoting",
+                "icon": "📋",
+                "image": "tonnie-roofing/thumbnails/quoting",
+                "detail_image": "tonnie-roofing/thumbnails/quoting-detail",
+                "short_description": "Detailed project quotes",
+                "full_description": "Get accurate, detailed quotes for your roofing and interior design projects.",
+                "features": [
+                    "Detailed project assessment",
+                    "Material quantity calculations",
+                    "Labor cost estimation",
+                    "Timeline projections",
+                    "Free consultation (working days)"
+                ],
+                "active": True,
+                "project_count": 4,
+                "inquiry_count": 20,
+                "image_count": 1,
+                "color": "#ef6c00",
+                "order": 4
+            }
+        ],
+        "projects": [],
+        "inquiries": [],
+        "visits": {
+            "total": 0,
+            "monthly": {},
+            "daily": {},
+            "devices": {}
+        },
+        "settings": {
+            "admin_count": 2,
+            "max_admins": 2
+        },
+        "mabati_options": MABATI_OPTIONS,
+        "roofing_essentials": ROOFING_ESSENTIALS,
+        "kenyan_counties": KENYAN_COUNTIES
+    }
+
+def create_template_file():
+    """Create a template database file in repo for initial deploy"""
+    template_db = {
+        "admins": [
+            {
+                "id": "admin_001",
+                "username": "antony",
+                "password": "antony123",
+                "full_name": "Antony Mutia",
+                "email": "antonymutie7@gmail.com",
+                "created_at": datetime.now().isoformat()
+            }
+        ],
+        "settings": {
+            "admin_count": 1,
+            "max_admins": 2
+        },
+        "profile": {},
+        "services": [],
+        "projects": [],
+        "inquiries": [],
+        "visits": {},
+        "mabati_options": MABATI_OPTIONS,
+        "roofing_essentials": ROOFING_ESSENTIALS,
+        "kenyan_counties": KENYAN_COUNTIES
+    }
+    with open(TEMPLATE_DB_PATH, 'w') as f:
+        json.dump(template_db, f, indent=2)
+    return template_db
+
+# ========== DATABASE READ/WRITE FUNCTIONS ==========
+
+def read_db():
+    """Read data from database - tries multiple sources in order"""
+    data = None
+    
+    # 1. Try /tmp first (fastest, writable)
+    if os.path.exists(RUNTIME_DB_PATH):
+        try:
+            with open(RUNTIME_DB_PATH, 'r') as f:
+                data = json.load(f)
+                print(f"✅ Database read from /tmp. Admins: {len(data.get('admins', []))}")
+                return data
+        except Exception as e:
+            print(f"⚠️ Error reading from /tmp: {e}")
+    
+    # 2. Try Cloudinary (persistent storage)
+    if not data:
+        data = download_from_cloudinary()
+        if data:
+            print(f"✅ Database loaded from Cloudinary")
+            # Cache to /tmp for next time
+            try:
+                with open(RUNTIME_DB_PATH, 'w') as f:
+                    json.dump(data, f, indent=2)
+                print(f"✅ Database cached to /tmp")
+            except Exception as e:
+                print(f"⚠️ Could not cache to /tmp: {e}")
+            return data
+    
+    # 3. Try template file (initial deploy)
+    if os.path.exists(TEMPLATE_DB_PATH):
+        try:
+            with open(TEMPLATE_DB_PATH, 'r') as f:
+                data = json.load(f)
+                print(f"✅ Database loaded from template file")
+                # Save to /tmp and Cloudinary
+                write_db(data)
+                return data
+        except Exception as e:
+            print(f"⚠️ Error reading template: {e}")
+    
+    # 4. Create new database from scratch
+    print("📁 Creating new database from scratch")
+    data = create_default_database()
+    write_db(data)
+    return data
+
+def write_db(data):
+    """Write data to database - writes to /tmp AND Cloudinary"""
+    success = False
+    
+    # Always write to /tmp (for immediate use)
+    try:
+        with open(RUNTIME_DB_PATH, 'w') as f:
+            json.dump(data, f, indent=2)
+        print(f"✅ Database saved to /tmp")
+        success = True
+    except Exception as e:
+        print(f"❌ Error writing to /tmp: {e}")
+        success = False
+    
+    # Backup to Cloudinary (don't fail main operation if backup fails)
+    try:
+        upload_to_cloudinary(data)
+    except Exception as e:
+        print(f"⚠️ Cloudinary backup failed but continuing: {e}")
+    
+    return success
+
+# ========== CLOUDINARY IMAGE HELPER FUNCTIONS ==========
+
 def get_cloudinary_url(public_id, transformation=None):
     """Generate Cloudinary URL for an image"""
     if not public_id:
@@ -332,8 +424,8 @@ def get_cloudinary_url(public_id, transformation=None):
         options['transformation'] = transformation
     return cloudinary.CloudinaryImage(public_id).build_url(**options)
 
-def upload_to_cloudinary(file, folder, public_id=None):
-    """Upload file to Cloudinary and return public_id"""
+def upload_to_cloudinary_image(file, folder, public_id=None):
+    """Upload image file to Cloudinary"""
     try:
         upload_options = {
             'folder': f'tonnie-roofing/{folder}',
@@ -389,13 +481,14 @@ def process_image_urls(data):
                         img['thumbnail_url'] = get_cloudinary_url(img['thumbnail'], {'width': 100, 'height': 70, 'crop': 'fill'})
     return data
 
-# ========== AUTHENTICATION DECORATOR ==========
+# ========== AUTHENTICATION DECORATOR (TEMPORARILY DISABLED) ==========
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-       # if not session.get('admin_logged_in'):
-         #   print("❌ No session found, redirecting to login")
-           # return redirect(url_for('admin_login'))
+        # 🚫 TEMPORARILY DISABLED - No login required during migration
+        # if not session.get('admin_logged_in'):
+        #     print("❌ No session found, redirecting to login")
+        #     return redirect(url_for('admin_login'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -463,7 +556,11 @@ def contact():
                          mabati_options=data.get('mabati_options', MABATI_OPTIONS),
                          roofing_essentials=data.get('roofing_essentials', ROOFING_ESSENTIALS))
 
-# ========== ADMIN AUTH ROUTES ==========
+# ========== ADMIN ROUTES ==========
+@app.route('/admin')
+def admin_index():
+    return redirect(url_for('admin_dashboard'))
+
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     data = read_db()
@@ -482,16 +579,11 @@ def admin_login():
                 break
         
         if admin_user:
-            # Clear any existing session first
             session.clear()
-            
-            # Set session variables
             session['admin_logged_in'] = True
             session['admin_id'] = admin_user['id']
             session['admin_username'] = username
             session['admin_name'] = admin_user.get('full_name', username)
-            
-            # Make session permanent (7 days)
             session.permanent = True
             
             print(f"✅ Login successful for: {username}")
@@ -528,14 +620,12 @@ def admin_create_account():
             full_name = request.form.get('fullName')
             email = request.form.get('email')
             
-            # Validate
             if not all([username, password, full_name, email]):
                 return render_template('admin/create-account.html', 
                                      error='All fields are required',
                                      current_count=data['settings']['admin_count'],
                                      max_count=data['settings']['max_admins'])
             
-            # Check if username exists
             for admin in data.get('admins', []):
                 if admin['username'] == username:
                     return render_template('admin/create-account.html', 
@@ -543,7 +633,6 @@ def admin_create_account():
                                          current_count=data['settings']['admin_count'],
                                          max_count=data['settings']['max_admins'])
             
-            # Create new admin
             new_admin = {
                 'id': str(uuid.uuid4()),
                 'username': username,
@@ -578,7 +667,6 @@ def admin_create_account():
                          current_count=data['settings']['admin_count'],
                          max_count=data['settings']['max_admins'])
 
-# ========== ADMIN PROTECTED ROUTES ==========
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
@@ -608,8 +696,9 @@ def admin_project_edit():
     project = None
     
     if request.method == 'POST':
-        # Handle project save
         project_data = request.get_json()
+        # Here you would save the project data
+        # For now, just return success
         return jsonify({'success': True})
     
     if project_id:
@@ -657,7 +746,18 @@ def admin_analytics():
     data = read_db()
     return render_template('admin/analytics.html', visits=data.get('visits', {}))
 
-# ========== CLOUDINARY API ROUTES ==========
+# ========== BACKUP ROUTE (Optional) ==========
+@app.route('/admin/backup-db')
+@admin_required
+def backup_database():
+    """Manually trigger database backup to Cloudinary"""
+    data = read_db()
+    if upload_to_cloudinary(data):
+        return jsonify({"success": True, "message": "Database backed up to Cloudinary"})
+    else:
+        return jsonify({"success": False, "message": "Backup failed"}), 500
+
+# ========== CLOUDINARY IMAGE API ROUTES ==========
 @app.route('/admin/upload-image', methods=['POST'])
 @admin_required
 def upload_image():
@@ -671,7 +771,7 @@ def upload_image():
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
     
-    result = upload_to_cloudinary(file, folder, public_id)
+    result = upload_to_cloudinary_image(file, folder, public_id)
     if result:
         return jsonify({
             'success': True,
@@ -696,5 +796,22 @@ def delete_image():
     else:
         return jsonify({'error': 'Delete failed'}), 500
 
+# ========== DEBUG ROUTES (Optional - Remove in Production) ==========
+@app.route('/debug/db-status')
+def debug_db_status():
+    """Check database status"""
+    data = read_db()
+    return {
+        'runtime_db_exists': os.path.exists(RUNTIME_DB_PATH),
+        'template_db_exists': os.path.exists(TEMPLATE_DB_PATH),
+        'admins_count': len(data.get('admins', [])),
+        'admins': [{'username': a['username']} for a in data.get('admins', [])],
+        'settings': data.get('settings', {})
+    }
+
 if __name__ == '__main__':
+    # Create template file if it doesn't exist
+    if not os.path.exists(TEMPLATE_DB_PATH):
+        create_template_file()
+    
     app.run(debug=True)
