@@ -1178,12 +1178,12 @@
     
     <script>
         // Check authentication
-        document.addEventListener('DOMContentLoaded', function() {
-            const adminSession = localStorage.getItem('adminSession');
-            if (!adminSession) {
-                window.location.href = '/admin/login?error=unauthorized';
-                return;
-            }
+        //document.addEventListener('DOMContentLoaded', function() {
+            //const adminSession = localStorage.getItem('adminSession');
+           // if (!adminSession) {
+               // window.location.href = '/admin/login?error=unauthorized';
+               // return;
+          //  }
             
             // Check if session is expired
             const session = JSON.parse(adminSession);
