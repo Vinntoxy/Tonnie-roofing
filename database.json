@@ -1,5 +1,18 @@
 {
-  "admins": [],
+  "admins": [
+  {
+    "id": "admin_001",
+    "username": "antony",
+    "password": "antony123",
+    "full_name": "Antony Mutia",
+    "email": "antonymutie7@gmail.com",
+    "created_at": "2026-02-24T00:00:00Z"
+  }
+],
+"settings": {
+  "admin_count": 1,
+  "max_admins": 2
+}
   "profile": {
     "company_name": "Tonnie Roofing",
     "company_logo": "tonnie-roofing/profile/logo",
