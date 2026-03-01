@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Manage Projects - Tonnie Roofing Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Admin Layout */
+        .admin-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: #1a202c;
+            color: white;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #2d3748;
+        }
+        
+        .sidebar-header .logo span {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #d97706;
+        }
+        
+        .sidebar-header .founder {
+            font-size: 0.8rem;
+            color: #d97706;
+            margin-top: 0.3rem;
+        }
+        
+        .nav-menu {
+            padding: 1.5rem 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.5rem;
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: #2d3748;
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: #2d3748;
+            color: #d97706;
+            border-left-color: #d97706;
+        }
+        
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            background: #d97706;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* Main Area - SCROLLABLE */
+        .main-area {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #f8f9fa;
+        }
+        
+        .main-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .main-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .main-area::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 3px;
+        }
+        
+        .content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Migration Banner */
+        .migration-banner {
+            background: #fff3cd;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #ffc107;
+            font-size: 0.95rem;
+            word-break: break-word;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .banner-close {
+            background: none;
+            border: none;
+            color: #856404;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .page-title h1 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 0.2rem;
+        }
+        
+        .page-title p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-avatar {
+            width: 44px;
+            height: 44px;
+            background: #d97706;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #d97706;
+            margin-bottom: 0.3rem;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.85rem;
+        }
+        
+        /* Action Bar */
+        .action-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8f9fa;
+            padding: 0.3rem 0.5rem 0.3rem 1rem;
+            border-radius: 50px;
+            flex: 1;
+            max-width: 400px;
+            border: 1px solid #eee;
+        }
+        
+        .search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            width: 100%;
+            font-size: 0.95rem;
+            padding: 0.5rem 0;
+        }
+        
+        .search-box button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            transition: background 0.3s;
+            min-height: 44px;
+        }
+        
+        .search-box button:hover {
+            background: #d97706;
+            color: white;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-tab {
+            padding: 0.6rem 1.2rem;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: #333;
+            font-size: 0.9rem;
+            min-height: 44px;
+        }
+        
+        .filter-tab:hover {
+            border-color: #d97706;
+            color: #d97706;
+        }
+        
+        .filter-tab.active {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+        }
+        
+        .add-btn {
+            background: #d97706;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            min-height: 48px;
+        }
+        
+        .add-btn:hover {
+            background: #b45f06;
+            transform: translateY(-2px);
+        }
+        
+        /* Projects Table Container */
+        .projects-table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .table-header h2 {
+            font-size: 1.2rem;
+            color: #333;
+        }
+        
+        .table-stats {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* Projects Table */
+        .projects-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        .projects-table th {
+            text-align: left;
+            padding: 1rem 0.5rem;
+            color: #666;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .projects-table td {
+            padding: 1rem 0.5rem;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        
+        /* Make rows clickable */
+        .projects-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .projects-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* But shouldn't interfere with action buttons */
+        .action-buttons {
+            pointer-events: auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .action-buttons button {
+            pointer-events: auto;
+        }
+        
+        .project-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            pointer-events: none;
+        }
+        
+        .project-thumb {
+            width: 60px;
+            height: 45px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f0f0f0;
+        }
+        
+        .project-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .project-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .project-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.2rem;
+            font-size: 0.95rem;
+        }
+        
+        .project-location {
+            font-size: 0.8rem;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        
+        .service-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            display: inline-block;
+            pointer-events: none;
+        }
+        
+        .service-badge.roofing {
+            background: #e6f3ff;
+            color: #0066cc;
+        }
+        
+        .service-badge.interior {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .service-badge.repairs {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .service-badge.quoting {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .mabati-badge {
+            background: #f0f0f0;
+            color: #666;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+        }
+        
+        .image-count {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            font-size: 0.85rem;
+            color: #666;
+            pointer-events: none;
+        }
+        
+        .status-toggle {
+            width: 44px;
+            height: 24px;
+            background: #ddd;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+            pointer-events: auto;
+        }
+        
+        .status-toggle.active {
+            background: #4caf50;
+        }
+        
+        .status-toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        
+        .status-toggle.active::after {
+            transform: translateX(20px);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.3rem;
+        }
+        
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .action-btn:hover {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+        }
+        
+        .action-btn.delete:hover {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        
+        .page-btn:hover {
+            border-color: #d97706;
+            color: #d97706;
+        }
+        
+        .page-btn.active {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+        }
+        
+        .page-btn.next {
+            width: auto;
+            padding: 0 1.2rem;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 450px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h3 {
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .close-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .modal-body {
+            margin-bottom: 2rem;
+        }
+        
+        .modal-body p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .warning-text {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            min-height: 48px;
+            min-width: 120px;
+        }
+        
+        .modal-btn.cancel {
+            background: #f8f9fa;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        
+        .modal-btn.cancel:hover {
+            background: #e9ecef;
+        }
+        
+        .modal-btn.confirm {
+            background: #d97706;
+            color: white;
+        }
+        
+        .modal-btn.confirm:hover {
+            background: #b45f06;
+        }
+        
+        .modal-btn.delete-confirm {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .modal-btn.delete-confirm:hover {
+            background: #c82333;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .projects-table-container {
+                overflow-x: auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                z-index: 999;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .content {
+                padding: 4.5rem 1rem 1rem 1rem;
+            }
+            
+            .action-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .filter-tabs {
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .pagination {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding-bottom: 0.5rem;
+            }
+            
+            .filter-tab {
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            
+            .project-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .action-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle Button -->
+    <button class="menu-toggle" id="menuToggle">☰</button>
+    
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span>TONNIE<span style="color: #a0aec0;">Admin</span></span>
+                </div>
+                <div class="founder">Founded by Antony Mutia</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="/admin/dashboard" class="nav-item">📊 Dashboard</a>
+                <a href="/admin/projects" class="nav-item active">🏗️ Projects</a>
+                <a href="/admin/services" class="nav-item">🛠️ Services</a>
+                <a href="/admin/inquiries" class="nav-item">📨 Inquiries</a>
+                <a href="/admin/analytics" class="nav-item">📈 Analytics</a>
+                <a href="/admin/profile" class="nav-item">👤 Profile</a>
+                <a href="/admin/logout" class="nav-item" id="logoutBtn">🚪 Logout</a>
+            </nav>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <main class="main-area">
+            <div class="content">
+                <!-- Migration Banner -->
+                <div class="migration-banner" id="migrationBanner">
+                    <span><strong>⚠️ Migration Mode Active</strong> - Authentication temporarily disabled</span>
+                    <button class="banner-close" onclick="hideBanner()">✕</button>
+                </div>
+                
+                <!-- Top Bar -->
+                <div class="top-bar">
+                    <div class="page-title">
+                        <h1>Manage Projects</h1>
+                        <p>Add, edit, or remove projects from your portfolio</p>
+                    </div>
+                    <div class="admin-profile">
+                        <span style="font-weight: 600;" id="adminName">Antony Mutia</span>
+                        <div class="admin-avatar" id="adminAvatar">AM</div>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card" onclick="filterProjects('all')">
+                        <div class="stat-value" id="totalProjects">48</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card" onclick="filterProjects('roofing')">
+                        <div class="stat-value" id="roofingCount">24</div>
+                        <div class="stat-label">Roofing</div>
+                    </div>
+                    <div class="stat-card" onclick="filterProjects('interior')">
+                        <div class="stat-value" id="interiorCount">12</div>
+                        <div class="stat-label">Interior</div>
+                    </div>
+                    <div class="stat-card" onclick="filterProjects('repairs')">
+                        <div class="stat-value" id="repairsCount">8</div>
+                        <div class="stat-label">Repairs</div>
+                    </div>
+                    <div class="stat-card" onclick="filterProjects('quoting')">
+                        <div class="stat-value" id="quotingCount">4</div>
+                        <div class="stat-label">Quoting</div>
+                    </div>
+                </div>
+                
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search projects by title, location...">
+                        <button onclick="searchProjects()">🔍</button>
+                    </div>
+                    
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" onclick="filterProjects('all')">All</button>
+                        <button class="filter-tab" onclick="filterProjects('roofing')">Roofing</button>
+                        <button class="filter-tab" onclick="filterProjects('interior')">Interior</button>
+                        <button class="filter-tab" onclick="filterProjects('repairs')">Repairs</button>
+                        <button class="filter-tab" onclick="filterProjects('quoting')">Quoting</button>
+                    </div>
+                    
+                    <a href="/admin/project-edit" class="add-btn">
+                        <span>➕</span> Add New Project
+                    </a>
+                </div>
+                
+                <!-- Projects Table -->
+                <div class="projects-table-container">
+                    <div class="table-header">
+                        <h2>All Projects</h2>
+                        <div class="table-stats">Showing <span id="visibleCount">48</span> of <span id="totalCount">48</span> projects</div>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="projects-table" id="projectsTable">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Service</th>
+                                    <th>Location</th>
+                                    <th>Date</th>
+                                    <th>Images</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Roofing Projects - Each row is clickable to edit -->
+                                <tr data-category="roofing" data-id="1" onclick="editProject(1)">
+                                    <td>
+                                        <div class="project-info">
+                                            <div class="project-thumb">
+                                                <img src="https://res.cloudinary.com/your-cloud-name/image/upload/tonnie-roofing/projects/roofing1-1-thumb.jpg" alt="Modern Roof Installation" onerror="this.src='https://via.placeholder.com/60x45'">
+                                            </div>
+                                            <div class="project-details">
+                                                <span class="project-title">Modern Roof Installation <span class="mabati-badge">Dumu Zas</span></span>
+                                                <span class="project-location">📍 Kilimani, Nairobi</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="service-badge roofing">Roofing</span></td>
+                                    <td>Nairobi</td>
+                                    <td>Mar 2026</td>
+                                    <td><span class="image-count">🖼️ 8</span></td>
+                                    <td>
+                                        <div class="status-toggle active" onclick="event.stopPropagation(); toggleStatus(this)" data-id="1"></div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons" onclick="event.stopPropagation()">
+                                            <button class="action-btn" onclick="editProject(1)" title="Edit">✏️</button>
+                                            <button class="action-btn" onclick="viewProject(1)" title="View">👁️</button>
+                                            <button class="action-btn delete" onclick="deleteProject(1)" title="Delete">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr data-category="roofing" data-id="2" onclick="editProject(2)">
+                                    <td>
+                                        <div class="project-info">
+                                            <div class="project-thumb">
+                                                <img src="https://res.cloudinary.com/your-cloud-name/image/upload/tonnie-roofing/projects/roofing2-1-thumb.jpg" alt="Commercial Complex Roofing" onerror="this.src='https://via.placeholder.com/60x45'">
+                                            </div>
+                                            <div class="project-details">
+                                                <span class="project-title">Commercial Complex <span class="mabati-badge">Versatile</span></span>
+                                                <span class="project-location">📍 Thika, Kiambu</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="service-badge roofing">Roofing</span></td>
+                                    <td>Kiambu</td>
+                                    <td>Feb 2026</td>
+                                    <td><span class="image-count">🖼️ 6</span></td>
+                                    <td>
+                                        <div class="status-toggle active" onclick="event.stopPropagation(); toggleStatus(this)" data-id="2"></div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons" onclick="event.stopPropagation()">
+                                            <button class="action-btn" onclick="editProject(2)">✏️</button>
+                                            <button class="action-btn" onclick="viewProject(2)">👁️</button>
+                                            <button class="action-btn delete" onclick="deleteProject(2)">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr data-category="roofing" data-id="3" onclick="editProject(3)">
+                                    <td>
+                                        <div class="project-info">
+                                            <div class="project-thumb">
+                                                <img src="https://res.cloudinary.com/your-cloud-name/image/upload/tonnie-roofing/projects/roofing3-1-thumb.jpg" alt="Luxury Villa Roof" onerror="this.src='https://via.placeholder.com/60x45'">
+                                            </div>
+                                            <div class="project-details">
+                                                <span class="project-title">Luxury Villa <span class="mabati-badge">Roman Tile</span></span>
+                                                <span class="project-location">📍 Kitengela, Kajiado</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="service-badge roofing">Roofing</span></td>
+                                    <td>Kajiado</td>
+                                    <td>Dec 2025</td>
+                                    <td><span class="image-count">🖼️ 10</span></td>
+                                    <td>
+                                        <div class="status-toggle active" onclick="event.stopPropagation(); toggleStatus(this)" data-id="3"></div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons" onclick="event.stopPropagation()">
+                                            <button class="action-btn" onclick="editProject(3)">✏️</button>
+                                            <button class="action-btn" onclick="viewProject(3)">👁️</button>
+                                            <button class="action-btn delete" onclick="deleteProject(3)">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Interior Projects -->
+                                <tr data-category="interior" data-id="4" onclick="editProject(4)">
+                                    <td>
+                                        <div class="project-info">
+                                            <div class="project-thumb">
+                                                <img src="https://res.cloudinary.com/your-cloud-name/image/upload/tonnie-roofing/projects/interior1-1-thumb.jpg" alt="Luxury Villa Interior" onerror="this.src='https://via.placeholder.com/60x45'">
+                                            </div>
+                                            <div class="project-details">
+                                                <span class="project-title">Luxury Villa Interior</span>
+                                                <span class="project-location">📍 Nyali, Mombasa</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="service-badge interior">Interior</span></td>
+                                    <td>Mombasa</td>
+                                    <td>Jan 2026</td>
+                                    <td><span class="image-count">🖼️ 7</span></td>
+                                    <td>
+                                        <div class="status-toggle active" onclick="event.stopPropagation(); toggleStatus(this)" data-id="4"></div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons" onclick="event.stopPropagation()">
+                                            <button class="action-btn" onclick="editProject(4)">✏️</button>
+                                            <button class="action-btn" onclick="viewProject(4)">👁️</button>
+                                            <button class="action-btn delete" onclick="deleteProject(4)">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr data-category="interior" data-id="5" onclick="editProject(5)">
+                                    <td>
+                                        <div class="project-info">
+                                            <div class="project-thumb">
+                                                <img src="https://res.cloudinary.com/your-cloud-name/image/upload/tonnie-roofing/projects/interior2-1-thumb.jpg" alt="Modern Office Partitions" onerror="this.src='https://via.placeholder.com/60x45'">
+                                            </div>
+                                            <div class="project-details">
+                                                <span class="project-title">Modern Office Partitions</span>
+                                                <span class="project-location">📍 Westlands, Nairobi</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="service-badge interior">Interior</span></td>
+                                    <td>Nairobi</td>
+                                    <td>Dec 2025</td>
+                                    <td><span class="image-count">🖼️ 5</span></td>
+                                    <td>
+                                        <div class="status-toggle active" onclick="event.stopPropagation(); toggleStatus(this)" data-id="5"></div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons" onclick="event.stopPropagation()">
+                                            <button class="action-btn" onclick="editProject(5)">✏️</button>
+                                            <button class="action-btn" onclick="viewProject(5)">👁️</button>
+                                            <button class="action-btn delete" onclick="deleteProject(5)">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Repairs Projects -->
+                                <tr data-category="repairs" data-id="6" onclick="editProject(6)">
+                                    <td>
+                                        <div class="project-info">
+                                            <div class="project-thumb">
+                                                <img src="https://res.cloudinary.com/your-cloud-name/image/upload/tonnie-roofing/projects/repair1-1-thumb.jpg" alt="Emergency Leak Repair" onerror="this.src='https://via.placeholder.com/60x45'">
+                                            </div>
+                                            <div class="project-details">
+                                                <span class="project-title">Emergency Leak Repair</span>
+                                                <span class="project-location">📍 Machakos Town</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="service-badge repairs">Repairs</span></td>
+                                    <td>Machakos</td>
+                                    <td>Mar 2026</td>
+                                    <td><span class="image-count">🖼️ 4</span></td>
+                                    <td>
+                                        <div class="status-toggle active" onclick="event.stopPropagation(); toggleStatus(this)" data-id="6"></div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons" onclick="event.stopPropagation()">
+                                            <button class="action-btn" onclick="editProject(6)">✏️</button>
+                                            <button class="action-btn" onclick="viewProject(6)">👁️</button>
+                                            <button class="action-btn delete" onclick="deleteProject(6)">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr data-category="repairs" data-id="7" onclick="editProject(7)">
+                                    <td>
+                                        <div class="project-info">
+                                            <div class="project-thumb">
+                                                <img src="https://res.cloudinary.com/your-cloud-name/image/upload/tonnie-roofing/projects/repair2-1-thumb.jpg" alt="Water Damaged Ceiling" onerror="this.src='https://via.placeholder.com/60x45'">
+                                            </div>
+                                            <div class="project-details">
+                                                <span class="project-title">Water Damaged Ceiling</span>
+                                                <span class="project-location">📍 Kisumu CBD</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="service-badge repairs">Repairs</span></td>
+                                    <td>Kisumu</td>
+                                    <td>Feb 2026</td>
+                                    <td><span class="image-count">🖼️ 5</span></td>
+                                    <td>
+                                        <div class="status-toggle active" onclick="event.stopPropagation(); toggleStatus(this)" data-id="7"></div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons" onclick="event.stopPropagation()">
+                                            <button class="action-btn" onclick="editProject(7)">✏️</button>
+                                            <button class="action-btn" onclick="viewProject(7)">👁️</button>
+                                            <button class="action-btn delete" onclick="deleteProject(7)">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Quoting Projects -->
+                                <tr data-category="quoting" data-id="8" onclick="editProject(8)">
+                                    <td>
+                                        <div class="project-info">
+                                            <div class="project-thumb">
+                                                <img src="https://res.cloudinary.com/your-cloud-name/image/upload/tonnie-roofing/projects/quoting1-1-thumb.jpg" alt="Shopping Mall Assessment" onerror="this.src='https://via.placeholder.com/60x45'">
+                                            </div>
+                                            <div class="project-details">
+                                                <span class="project-title">Shopping Mall Assessment</span>
+                                                <span class="project-location">📍 Nakuru CBD</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="service-badge quoting">Quoting</span></td>
+                                    <td>Nakuru</td>
+                                    <td>Jan 2026</td>
+                                    <td><span class="image-count">🖼️ 3</span></td>
+                                    <td>
+                                        <div class="status-toggle active" onclick="event.stopPropagation(); toggleStatus(this)" data-id="8"></div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons" onclick="event.stopPropagation()">
+                                            <button class="action-btn" onclick="editProject(8)">✏️</button>
+                                            <button class="action-btn" onclick="viewProject(8)">👁️</button>
+                                            <button class="action-btn delete" onclick="deleteProject(8)">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- No Results Message -->
+                    <div id="noResults" style="text-align: center; padding: 3rem; display: none;">
+                        <p style="color: #666; margin-bottom: 1rem;">No projects found matching your criteria</p>
+                        <button class="add-btn" onclick="resetFilters()">Reset Filters</button>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <button class="page-btn prev" onclick="changePage('prev')">←</button>
+                        <button class="page-btn active" onclick="changePage(1)">1</button>
+                        <button class="page-btn" onclick="changePage(2)">2</button>
+                        <button class="page-btn" onclick="changePage(3)">3</button>
+                        <button class="page-btn next" onclick="changePage('next')">Next →</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Delete Project</h3>
+                <button class="close-btn" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this project? This action cannot be undone.</p>
+                <p class="warning-text">All images and data associated with this project will be permanently removed from Cloudinary.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="modal-btn delete-confirm" onclick="confirmDelete()">Delete Project</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Toast -->
+    <div id="successToast" class="toast">
+        ✅ Project deleted successfully!
+    </div>
+    
+    <script>
+        // ========== SIDEBAR TOGGLE ==========
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+        
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !menuToggle.contains(event.target) && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+        
+        // ========== GLOBAL VARIABLES ==========
+        let projectToDelete = null;
+        let currentFilter = 'all';
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        
+        // ========== LOAD SAVED THEME AND SESSION ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('adminTheme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+            
+            // Update admin name from session
+            const adminSession = localStorage.getItem('adminSession');
+            if (adminSession) {
+                try {
+                    const session = JSON.parse(adminSession);
+                    if (session.username === 'antony') {
+                        document.getElementById('adminName').textContent = 'Antony Mutia';
+                        document.getElementById('adminAvatar').textContent = 'AM';
+                    } else if (session.fullName) {
+                        document.getElementById('adminName').textContent = session.fullName;
+                        const initials = session.fullName.split(' ').map(n => n[0]).join('');
+                        document.getElementById('adminAvatar').textContent = initials;
+                    }
+                } catch (e) {
+                    console.log('No valid session');
+                }
+            }
+            
+            updateVisibleCount();
+        });
+        
+        // ========== SEARCH PROJECTS ==========
+        function searchProjects() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#projectsTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            updateVisibleCount();
+            checkNoResults();
+        }
+        
+        // ========== FILTER PROJECTS ==========
+        function filterProjects(category) {
+            currentFilter = category;
+            
+            // Update active tabs
+            const tabs = document.querySelectorAll('.filter-tab');
+            tabs.forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(category) || (category === 'all' && tab.textContent === 'All')) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Filter rows
+            const rows = document.querySelectorAll('#projectsTable tbody tr');
+            
+            rows.forEach(row => {
+                if (category === 'all' || row.dataset.category === category) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            updateVisibleCount();
+            checkNoResults();
+        }
+        
+        // ========== UPDATE VISIBLE COUNT ==========
+        function updateVisibleCount() {
+            const visibleRows = document.querySelectorAll('#projectsTable tbody tr[style=""]');
+            const totalRows = document.querySelectorAll('#projectsTable tbody tr').length;
+            document.getElementById('visibleCount').textContent = visibleRows.length;
+            document.getElementById('totalCount').textContent = totalRows;
+        }
+        
+        // ========== CHECK NO RESULTS ==========
+        function checkNoResults() {
+            const visibleRows = document.querySelectorAll('#projectsTable tbody tr[style=""]');
+            const noResults = document.getElementById('noResults');
+            
+            if (visibleRows.length === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+        }
+        
+        // ========== RESET FILTERS ==========
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            filterProjects('all');
+        }
+        
+        // ========== TOGGLE STATUS ==========
+        function toggleStatus(element) {
+            element.classList.toggle('active');
+            const projectId = element.dataset.id;
+            console.log(`Toggled status for project ${projectId}`);
+            
+            // Show toast
+            showToast('Status updated successfully!');
+        }
+        
+        // ========== PROJECT ACTIONS ==========
+        function editProject(id) {
+            window.location.href = `/admin/project-edit?id=${id}`;
+        }
+        
+        function viewProject(id) {
+            window.open(`/project?id=${id}`, '_blank');
+        }
+        
+        function deleteProject(id) {
+            event.stopPropagation(); // Prevent row click
+            projectToDelete = id;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+            projectToDelete = null;
+        }
+        
+        function confirmDelete() {
+            if (projectToDelete) {
+                // Remove row from table
+                const row = document.querySelector(`tr[data-id="${projectToDelete}"]`);
+                if (row) {
+                    row.remove();
+                }
+                
+                console.log(`Deleted project: ${projectToDelete}`);
+                
+                // Update stats
+                updateStats();
+                
+                // Show success message
+                showToast('Project deleted successfully from Cloudinary');
+            }
+            
+            closeDeleteModal();
+        }
+        
+        // ========== UPDATE STATS ==========
+        function updateStats() {
+            const categories = ['roofing', 'interior', 'repairs', 'quoting'];
+            const stats = {};
+            
+            categories.forEach(cat => {
+                stats[cat] = document.querySelectorAll(`tr[data-category="${cat}"]`).length;
+            });
+            
+            const total = Object.values(stats).reduce((a, b) => a + b, 0);
+            
+            document.getElementById('totalProjects').textContent = total;
+            document.getElementById('roofingCount').textContent = stats.roofing;
+            document.getElementById('interiorCount').textContent = stats.interior;
+            document.getElementById('repairsCount').textContent = stats.repairs;
+            document.getElementById('quotingCount').textContent = stats.quoting;
+            
+            updateVisibleCount();
+        }
+        
+        // ========== PAGINATION ==========
+        function changePage(page) {
+            if (page === 'prev') {
+                currentPage = Math.max(1, currentPage - 1);
+            } else if (page === 'next') {
+                currentPage++;
+            } else {
+                currentPage = page;
+            }
+            
+            // Update active page button
+            document.querySelectorAll('.page-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent == currentPage) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // In real app, fetch new page data
+            console.log(`Loading page ${currentPage}`);
+        }
+        
+        // ========== SHOW TOAST ==========
+        function showToast(message) {
+            const toast = document.getElementById('successToast');
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+        
+        // ========== HIDE BANNER ==========
+        function hideBanner() {
+            document.getElementById('migrationBanner').style.display = 'none';
+        }
+        
+        // ========== LOGOUT ==========
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('adminSession');
+                localStorage.removeItem('adminTheme');
+                window.location.href = '/admin/logout';
+            }
+        });
+        
+        // ========== KEYBOARD SHORTCUTS ==========
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + F to focus search
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            // Ctrl + N for new project
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                window.location.href = '/admin/project-edit';
+            }
+        });
+    </script>
+</body>
+</html> 

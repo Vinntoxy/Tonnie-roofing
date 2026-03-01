@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Analytics - Tonnie Roofing Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Admin Layout */
+        .admin-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: #1a202c;
+            color: white;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #2d3748;
+        }
+        
+        .sidebar-header .logo span {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #d97706;
+        }
+        
+        .sidebar-header .founder {
+            font-size: 0.8rem;
+            color: #d97706;
+            margin-top: 0.3rem;
+        }
+        
+        .nav-menu {
+            padding: 1.5rem 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.5rem;
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: #2d3748;
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: #2d3748;
+            color: #d97706;
+            border-left-color: #d97706;
+        }
+        
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            background: #d97706;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* Main Area */
+        .main-area {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #f8f9fa;
+        }
+        
+        .main-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .main-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .main-area::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 3px;
+        }
+        
+        .content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .page-title h1 {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        
+        .page-title p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-avatar {
+            width: 44px;
+            height: 44px;
+            background: #d97706;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Date Range Selector */
+        .date-range {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .range-presets {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .range-btn {
+            padding: 0.6rem 1.2rem;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #333;
+            font-size: 0.9rem;
+            min-height: 44px;
+        }
+        
+        .range-btn:hover {
+            border-color: #d97706;
+            color: #d97706;
+        }
+        
+        .range-btn.active {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+        }
+        
+        .date-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .date-input {
+            padding: 0.6rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+        }
+        
+        .export-btn {
+            padding: 0.6rem 1.5rem;
+            background: #d97706;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-height: 44px;
+        }
+        
+        .export-btn:hover {
+            background: #b45f06;
+            transform: translateY(-2px);
+        }
+        
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .kpi-title {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d97706;
+            font-size: 1.5rem;
+        }
+        
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+        
+        .kpi-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.9rem;
+        }
+        
+        .trend-up {
+            color: #4caf50;
+        }
+        
+        .trend-down {
+            color: #f44336;
+        }
+        
+        .kpi-period {
+            color: #999;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header h3 {
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .card-header select {
+            padding: 0.5rem 2rem 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.9rem;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        /* Bar Chart */
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 250px;
+            padding: 1rem 0;
+        }
+        
+        .bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 60px;
+        }
+        
+        .bar {
+            width: 40px;
+            background: #d97706;
+            border-radius: 5px 5px 0 0;
+            transition: height 0.3s;
+            position: relative;
+        }
+        
+        .bar:hover {
+            background: #b45f06;
+        }
+        
+        .bar-label {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #999;
+        }
+        
+        /* Line Chart */
+        .line-chart svg {
+            width: 100%;
+            height: 250px;
+        }
+        
+        /* Donut Chart */
+        .donut-chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 250px;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .donut {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(#d97706 0% 45%, #4caf50 45% 70%, #2196f3 70% 85%, #ff9800 85% 100%);
+        }
+        
+        .donut-hole {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .donut-hole span {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        
+        .legend-label {
+            font-size: 0.9rem;
+            color: #333;
+        }
+        
+        .legend-value {
+            font-weight: 600;
+            color: #d97706;
+            margin-left: 0.5rem;
+        }
+        
+        /* Full Width Chart */
+        .full-width-chart {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        /* Traffic Sources */
+        .sources-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            padding: 1rem 0;
+        }
+        
+        .source-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .source-name {
+            width: 100px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .progress-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #d97706;
+            border-radius: 4px;
+        }
+        
+        .source-percent {
+            width: 50px;
+            text-align: right;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        /* Device Breakdown */
+        .device-stats {
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+            padding: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .device-list {
+            flex: 1;
+        }
+        
+        .device-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .device-icon {
+            width: 30px;
+            font-size: 1.5rem;
+        }
+        
+        .device-name {
+            width: 70px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .device-percent {
+            width: 50px;
+            text-align: right;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .device-pie {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(#d97706 0% 55%, #4caf50 55% 95%, #2196f3 95% 100%);
+            position: relative;
+        }
+        
+        .device-pie-hole {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* Geographic Table */
+        .geo-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .geo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .geo-table th {
+            text-align: left;
+            padding: 1rem 0.5rem;
+            color: #666;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .geo-table td {
+            padding: 1rem 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .geo-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .progress-cell {
+            width: 200px;
+        }
+        
+        .trend-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .trend-up {
+            color: #4caf50;
+        }
+        
+        .trend-down {
+            color: #f44336;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .toast.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sources-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                z-index: 999;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .content {
+                padding: 4.5rem 1rem 1rem 1rem;
+            }
+            
+            .date-range {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .range-presets {
+                justify-content: center;
+            }
+            
+            .date-picker {
+                justify-content: center;
+            }
+            
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .donut-chart-container {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .device-stats {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .device-pie {
+                margin: 0 auto;
+            }
+            
+            .geo-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .range-presets {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding-bottom: 0.5rem;
+            }
+            
+            .range-btn {
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            
+            .date-picker {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .date-input {
+                width: 100%;
+            }
+            
+            .export-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .bar-group {
+                width: 40px;
+            }
+            
+            .bar {
+                width: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menuToggle">☰</button>
+    
+    <div class="admin-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span>TONNIE<span style="color: #a0aec0;">Admin</span></span>
+                </div>
+                <div class="founder">Founded by Antony Mutia</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="/admin/dashboard" class="nav-item">📊 Dashboard</a>
+                <a href="/admin/projects" class="nav-item">🏗️ Projects</a>
+                <a href="/admin/services" class="nav-item">🛠️ Services</a>
+                <a href="/admin/inquiries" class="nav-item">📨 Inquiries</a>
+                <a href="/admin/analytics" class="nav-item active">📈 Analytics</a>
+                <a href="/admin/profile" class="nav-item">👤 Profile</a>
+                <a href="/admin/logout" class="nav-item" id="logoutBtn">🚪 Logout</a>
+            </nav>
+        </aside>
+        
+        <main class="main-area">
+            <div class="content">
+                <div class="top-bar">
+                    <div class="page-title">
+                        <h1>Analytics Dashboard</h1>
+                        <p>Track your website performance and visitor statistics</p>
+                    </div>
+                    <div class="admin-profile">
+                        <span id="adminName">Loading...</span>
+                        <div class="admin-avatar" id="adminAvatar">AM</div>
+                    </div>
+                </div>
+                
+                <!-- Date Range Selector -->
+                <div class="date-range">
+                    <div class="range-presets">
+                        <button class="range-btn active" onclick="setDateRange('today')">Today</button>
+                        <button class="range-btn" onclick="setDateRange('yesterday')">Yesterday</button>
+                        <button class="range-btn" onclick="setDateRange('7days')">Last 7 Days</button>
+                        <button class="range-btn" onclick="setDateRange('30days')">Last 30 Days</button>
+                        <button class="range-btn" onclick="setDateRange('month')">This Month</button>
+                        <button class="range-btn" onclick="setDateRange('year')">This Year</button>
+                    </div>
+                    
+                    <div class="date-picker">
+                        <input type="date" class="date-input" id="startDate" value="2026-02-01">
+                        <span>to</span>
+                        <input type="date" class="date-input" id="endDate" value="2026-02-26">
+                        <button class="export-btn" onclick="exportReport()">
+                            <span>📥</span> Export
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Total Visits</span>
+                            <span class="kpi-icon">👁️</span>
+                        </div>
+                        <div class="kpi-value" id="totalVisits">2,847</div>
+                        <div class="kpi-trend trend-up">
+                            <span>↑</span> 15.3% from last month
+                        </div>
+                        <div class="kpi-period">Feb 1-26, 2026</div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Unique Visitors</span>
+                            <span class="kpi-icon">👤</span>
+                        </div>
+                        <div class="kpi-value" id="uniqueVisitors">1,932</div>
+                        <div class="kpi-trend trend-up">
+                            <span>↑</span> 12.7% from last month
+                        </div>
+                        <div class="kpi-period">Feb 1-26, 2026</div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Avg. Session</span>
+                            <span class="kpi-icon">⏱️</span>
+                        </div>
+                        <div class="kpi-value" id="avgSession">4m 32s</div>
+                        <div class="kpi-trend trend-up">
+                            <span>↑</span> 45s from last month
+                        </div>
+                        <div class="kpi-period">Feb 1-26, 2026</div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Bounce Rate</span>
+                            <span class="kpi-icon">📉</span>
+                        </div>
+                        <div class="kpi-value" id="bounceRate">42.8%</div>
+                        <div class="kpi-trend trend-down">
+                            <span>↓</span> 3.2% from last month
+                        </div>
+                        <div class="kpi-period">Feb 1-26, 2026</div>
+                    </div>
+                </div>
+                
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <!-- Daily Visits Chart -->
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3>Daily Visits (Last 7 Days)</h3>
+                            <select onchange="changeChartPeriod(this.value)">
+                                <option>Last 7 days</option>
+                                <option>Last 14 days</option>
+                                <option>Last 30 days</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <div class="bar-chart" id="dailyChart">
+                                <div class="bar-group">
+                                    <div class="bar" style="height: 150px;">
+                                        <span class="bar-value">423</span>
+                                    </div>
+                                    <span class="bar-label">Mon</span>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar" style="height: 180px;">
+                                        <span class="bar-value">512</span>
+                                    </div>
+                                    <span class="bar-label">Tue</span>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar" style="height: 130px;">
+                                        <span class="bar-value">387</span>
+                                    </div>
+                                    <span class="bar-label">Wed</span>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar" style="height: 200px;">
+                                        <span class="bar-value">589</span>
+                                    </div>
+                                    <span class="bar-label">Thu</span>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar" style="height: 220px;">
+                                        <span class="bar-value">645</span>
+                                    </div>
+                                    <span class="bar-label">Fri</span>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar" style="height: 190px;">
+                                        <span class="bar-value">534</span>
+                                    </div>
+                                    <span class="bar-label">Sat</span>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar" style="height: 140px;">
+                                        <span class="bar-value">398</span>
+                                    </div>
+                                    <span class="bar-label">Sun</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Monthly Visits Chart -->
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3>Monthly Visits (Last 6 Months)</h3>
+                            <select onchange="changeMonthlyPeriod(this.value)">
+                                <option>Last 6 months</option>
+                                <option>Last 12 months</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <div class="line-chart">
+                                <svg viewBox="0 0 400 200">
+                                    <polyline points="20,180 80,150 140,120 200,80 260,60 320,40 380,20" 
+                                              fill="none" stroke="#d97706" stroke-width="3"/>
+                                    <circle cx="20" cy="180" r="4" fill="#d97706"/>
+                                    <circle cx="80" cy="150" r="4" fill="#d97706"/>
+                                    <circle cx="140" cy="120" r="4" fill="#d97706"/>
+                                    <circle cx="200" cy="80" r="4" fill="#d97706"/>
+                                    <circle cx="260" cy="60" r="4" fill="#d97706"/>
+                                    <circle cx="320" cy="40" r="4" fill="#d97706"/>
+                                    <circle cx="380" cy="20" r="4" fill="#d97706"/>
+                                    <text x="20" y="200" font-size="10" fill="#666">Sep</text>
+                                    <text x="80" y="200" font-size="10" fill="#666">Oct</text>
+                                    <text x="140" y="200" font-size="10" fill="#666">Nov</text>
+                                    <text x="200" y="200" font-size="10" fill="#666">Dec</text>
+                                    <text x="260" y="200" font-size="10" fill="#666">Jan</text>
+                                    <text x="320" y="200" font-size="10" fill="#666">Feb</text>
+                                    <text x="380" y="200" font-size="10" fill="#666">Mar</text>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Service Breakdown -->
+                <div class="full-width-chart">
+                    <div class="card-header">
+                        <h3>Service Breakdown</h3>
+                        <select onchange="changeBreakdownType(this.value)">
+                            <option>By Projects</option>
+                            <option>By Inquiries</option>
+                            <option>By Revenue</option>
+                        </select>
+                    </div>
+                    
+                    <div class="donut-chart-container">
+                        <div class="donut">
+                            <div class="donut-hole">
+                                <span>48</span>
+                                <small>Projects</small>
+                            </div>
+                        </div>
+                        <div class="donut-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #d97706;"></div>
+                                <span class="legend-label">Roofing</span>
+                                <span class="legend-value">24 (50%)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #4caf50;"></div>
+                                <span class="legend-label">Interior</span>
+                                <span class="legend-value">12 (25%)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #2196f3;"></div>
+                                <span class="legend-label">Repairs</span>
+                                <span class="legend-value">8 (17%)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #ff9800;"></div>
+                                <span class="legend-label">Quoting</span>
+                                <span class="legend-value">4 (8%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Traffic Sources and Top Pages -->
+                <div class="charts-grid">
+                    <!-- Traffic Sources -->
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3>Traffic Sources</h3>
+                        </div>
+                        
+                        <div class="sources-grid">
+                            <div>
+                                <div class="source-item">
+                                    <span class="source-name">Direct</span>
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-fill" style="width: 45%;"></div>
+                                    </div>
+                                    <span class="source-percent">45%</span>
+                                </div>
+                                <div class="source-item">
+                                    <span class="source-name">Google</span>
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-fill" style="width: 30%;"></div>
+                                    </div>
+                                    <span class="source-percent">30%</span>
+                                </div>
+                                <div class="source-item">
+                                    <span class="source-name">Social</span>
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-fill" style="width: 15%;"></div>
+                                    </div>
+                                    <span class="source-percent">15%</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="source-item">
+                                    <span class="source-name">Referrals</span>
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-fill" style="width: 7%;"></div>
+                                    </div>
+                                    <span class="source-percent">7%</span>
+                                </div>
+                                <div class="source-item">
+                                    <span class="source-name">Email</span>
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-fill" style="width: 3%;"></div>
+                                    </div>
+                                    <span class="source-percent">3%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Pages -->
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3>Top Pages</h3>
+                        </div>
+                        
+                        <div>
+                            <div class="source-item">
+                                <span class="source-name">/</span>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-fill" style="width: 32%;"></div>
+                                </div>
+                                <span class="source-percent">32%</span>
+                            </div>
+                            <div class="source-item">
+                                <span class="source-name">/projects</span>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-fill" style="width: 23%;"></div>
+                                </div>
+                                <span class="source-percent">23%</span>
+                            </div>
+                            <div class="source-item">
+                                <span class="source-name">/services</span>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-fill" style="width: 17%;"></div>
+                                </div>
+                                <span class="source-percent">17%</span>
+                            </div>
+                            <div class="source-item">
+                                <span class="source-name">/contact</span>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-fill" style="width: 11%;"></div>
+                                </div>
+                                <span class="source-percent">11%</span>
+                            </div>
+                            <div class="source-item">
+                                <span class="source-name">/profile</span>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-fill" style="width: 8%;"></div>
+                                </div>
+                                <span class="source-percent">8%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Device Breakdown -->
+                <div class="full-width-chart">
+                    <div class="card-header">
+                        <h3>Device Breakdown</h3>
+                    </div>
+                    
+                    <div class="device-stats">
+                        <div class="device-list">
+                            <div class="device-item">
+                                <span class="device-icon">📱</span>
+                                <span class="device-name">Mobile</span>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-fill" style="width: 55%;"></div>
+                                </div>
+                                <span class="device-percent">55%</span>
+                            </div>
+                            <div class="device-item">
+                                <span class="device-icon">💻</span>
+                                <span class="device-name">Desktop</span>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-fill" style="width: 40%;"></div>
+                                </div>
+                                <span class="device-percent">40%</span>
+                            </div>
+                            <div class="device-item">
+                                <span class="device-icon">📟</span>
+                                <span class="device-name">Tablet</span>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-fill" style="width: 5%;"></div>
+                                </div>
+                                <span class="device-percent">5%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="device-pie">
+                            <div class="device-pie-hole">55%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Geographic Data -->
+                <div class="geo-card">
+                    <div class="card-header">
+                        <h3>Top Locations</h3>
+                        <select onchange="changeLocationType(this.value)">
+                            <option>By Visits</option>
+                            <option>By Inquiries</option>
+                        </select>
+                    </div>
+                    
+                    <table class="geo-table">
+                        <thead>
+                            <tr>
+                                <th>Location</th>
+                                <th>Visits</th>
+                                <th>Percentage</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Nairobi</strong></td>
+                                <td>1,245</td>
+                                <td class="progress-cell">
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-fill" style="width: 65%;"></div>
+                                    </div>
+                                </td>
+                                <td class="trend-cell trend-up">↑ 12%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Kiambu</strong></td>
+                                <td>432</td>
+                                <td class="progress-cell">
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-fill" style="width: 23%;"></div>
+                                    </div>
+                                </td>
+                                <td class="trend-cell trend-up">↑ 8%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Machakos</strong></td>
+                                <td>298</td>
+                                <td class="progress-cell">
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-fill" style="width: 16%;"></div>
+                                    </div>
+                                </td>
+                                <td class="trend-cell trend-down">↓ 3%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Kajiado</strong></td>
+                                <td>187</td>
+                                <td class="progress-cell">
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-fill" style="width: 10%;"></div>
+                                    </div>
+                                </td>
+                                <td class="trend-cell trend-up">↑ 5%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Mombasa</strong></td>
+                                <td>145</td>
+                                <td class="progress-cell">
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-fill" style="width: 8%;"></div>
+                                    </div>
+                                </td>
+                                <td class="trend-cell trend-up">↑ 2%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Toast -->
+    <div id="successToast" class="toast">✅ Report exported</div>
+    
+    <script>
+        // DOM Elements
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        // ========== INIT ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            setupSidebar();
+            loadUserData();
+            loadAnalyticsData();
+        });
+        
+        function loadUserData() {
+            const adminSession = localStorage.getItem('adminSession');
+            if (adminSession) {
+                try {
+                    const session = JSON.parse(adminSession);
+                    document.getElementById('adminName').textContent = session.fullName || 'Admin';
+                    if (session.username === 'antony') {
+                        document.getElementById('adminAvatar').textContent = 'AM';
+                    }
+                } catch (e) {}
+            } else {
+                document.getElementById('adminName').textContent = 'Admin';
+            }
+        }
+        
+        function loadAnalyticsData() {
+            // Simulate loading analytics data
+            console.log('Analytics data loaded');
+        }
+        
+        // ========== SIDEBAR ==========
+        function setupSidebar() {
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+            
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(event.target) && !menuToggle.contains(event.target) && sidebar.classList.contains('active')) {
+                        sidebar.classList.remove('active');
+                    }
+                }
+            });
+        }
+        
+        // ========== DATE RANGE ==========
+        function setDateRange(range) {
+            const btns = document.querySelectorAll('.range-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const today = new Date();
+            let startDate = new Date();
+            let endDate = new Date();
+            
+            switch(range) {
+                case 'today':
+                    startDate = today;
+                    endDate = today;
+                    break;
+                case 'yesterday':
+                    startDate = new Date(today.setDate(today.getDate() - 1));
+                    endDate = new Date(today.setDate(today.getDate()));
+                    break;
+                case '7days':
+                    startDate = new Date(today.setDate(today.getDate() - 7));
+                    endDate = new Date();
+                    break;
+                case '30days':
+                    startDate = new Date(today.setDate(today.getDate() - 30));
+                    endDate = new Date();
+                    break;
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date();
+                    break;
+                case 'year':
+                    startDate = new Date(today.getFullYear(), 0, 1);
+                    endDate = new Date();
+                    break;
+            }
+            
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+            
+            showToast(`Date range updated: ${range}`);
+        }
+        
+        // ========== CHART PERIODS ==========
+        function changeChartPeriod(period) {
+            showToast(`Chart period changed to: ${period}`);
+        }
+        
+        function changeMonthlyPeriod(period) {
+            showToast(`Monthly period changed to: ${period}`);
+        }
+        
+        function changeBreakdownType(type) {
+            showToast(`Breakdown changed to: ${type}`);
+        }
+        
+        function changeLocationType(type) {
+            showToast(`Location view changed to: ${type}`);
+        }
+        
+        // ========== EXPORT ==========
+        function exportReport() {
+            showToast('Exporting report...');
+            
+            // Simulate export
+            setTimeout(() => {
+                showToast('Report exported successfully!');
+            }, 1000);
+        }
+        
+        // ========== TOAST ==========
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('successToast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+        
+        // ========== LOGOUT ==========
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Logout?')) {
+                localStorage.removeItem('adminSession');
+                window.location.href = '/admin/logout';
+            }
+        });
+    </script>
+</body>
+</html>

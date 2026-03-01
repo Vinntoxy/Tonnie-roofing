@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Manage Inquiries - Tonnie Roofing Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Admin Layout */
+        .admin-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: #1a202c;
+            color: white;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #2d3748;
+        }
+        
+        .sidebar-header .logo span {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #d97706;
+        }
+        
+        .sidebar-header .founder {
+            font-size: 0.8rem;
+            color: #d97706;
+            margin-top: 0.3rem;
+        }
+        
+        .nav-menu {
+            padding: 1.5rem 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.5rem;
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: #2d3748;
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: #2d3748;
+            color: #d97706;
+            border-left-color: #d97706;
+        }
+        
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            background: #d97706;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* Main Area */
+        .main-area {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #f8f9fa;
+        }
+        
+        .main-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .main-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .main-area::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 3px;
+        }
+        
+        .content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .page-title h1 {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        
+        .page-title p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-avatar {
+            width: 44px;
+            height: 44px;
+            background: #d97706;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .stat-icon {
+            width: 54px;
+            height: 54px;
+            background: #d97706;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .stat-info h3 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 0.2rem;
+        }
+        
+        .stat-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* Filter Bar */
+        .filter-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-tab {
+            padding: 0.6rem 1.2rem;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: #333;
+            font-size: 0.9rem;
+            min-height: 44px;
+        }
+        
+        .filter-tab:hover {
+            border-color: #d97706;
+            color: #d97706;
+        }
+        
+        .filter-tab.active {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8f9fa;
+            padding: 0.3rem 0.5rem 0.3rem 1rem;
+            border-radius: 50px;
+            border: 1px solid #eee;
+            width: 300px;
+        }
+        
+        .search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            width: 100%;
+            font-size: 0.95rem;
+            padding: 0.5rem 0;
+        }
+        
+        .search-box button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+        }
+        
+        .search-box button:hover {
+            background: #d97706;
+            color: white;
+        }
+        
+        /* Inquiries Container */
+        .inquiries-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .table-header h2 {
+            font-size: 1.2rem;
+            color: #333;
+        }
+        
+        .bulk-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .bulk-btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            min-height: 44px;
+        }
+        
+        .bulk-btn:hover {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+        }
+        
+        /* Inquiries Table */
+        .inquiries-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        .inquiries-table th {
+            text-align: left;
+            padding: 1rem 0.5rem;
+            color: #666;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .inquiries-table td {
+            padding: 1rem 0.5rem;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        
+        .inquiries-table tr.unread {
+            background: #fff9f0;
+        }
+        
+        .inquiries-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .checkbox-cell {
+            width: 30px;
+        }
+        
+        .checkbox-cell input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .client-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .client-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.2rem;
+        }
+        
+        .client-email {
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        .service-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            display: inline-block;
+        }
+        
+        .service-badge.roofing {
+            background: #e6f3ff;
+            color: #0066cc;
+        }
+        
+        .service-badge.interior {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .service-badge.repairs {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .service-badge.quoting {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .service-badge.general {
+            background: #e8eaf6;
+            color: #3f51b5;
+        }
+        
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .status-badge.unread {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-badge.read {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-badge.replied {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-badge.archived {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .date-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .date-full {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .date-relative {
+            font-size: 0.75rem;
+            color: #999;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.3rem;
+        }
+        
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .action-btn:hover {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+        }
+        
+        .action-btn.delete:hover {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+        
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        
+        .page-btn:hover {
+            border-color: #d97706;
+            color: #d97706;
+        }
+        
+        .page-btn.active {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+        }
+        
+        .page-btn.next {
+            width: auto;
+            padding: 0 1.2rem;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h3 {
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .inquiry-detail {
+            margin-bottom: 2rem;
+        }
+        
+        .detail-row {
+            display: flex;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .detail-label {
+            width: 100px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            flex: 1;
+            color: #333;
+        }
+        
+        .message-box {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+        
+        .reply-section {
+            margin-top: 2rem;
+        }
+        
+        .reply-section h4 {
+            margin-bottom: 1rem;
+        }
+        
+        .reply-textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            min-height: 120px;
+            margin-bottom: 1rem;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .reply-textarea:focus {
+            outline: none;
+            border-color: #d97706;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            min-height: 48px;
+        }
+        
+        .modal-btn.primary {
+            background: #d97706;
+            color: white;
+        }
+        
+        .modal-btn.primary:hover {
+            background: #b45f06;
+        }
+        
+        .modal-btn.secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        
+        .modal-btn.secondary:hover {
+            background: #e9ecef;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .toast.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .inquiries-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                z-index: 999;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .content {
+                padding: 4.5rem 1rem 1rem 1rem;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .filter-tabs {
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .bulk-actions {
+                width: 100%;
+            }
+            
+            .bulk-btn {
+                flex: 1;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .filter-tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding-bottom: 0.5rem;
+            }
+            
+            .filter-tab {
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            
+            .detail-row {
+                flex-direction: column;
+            }
+            
+            .detail-label {
+                width: 100%;
+                margin-bottom: 0.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menuToggle">☰</button>
+    
+    <div class="admin-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span>TONNIE<span style="color: #a0aec0;">Admin</span></span>
+                </div>
+                <div class="founder">Founded by Antony Mutia</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="/admin/dashboard" class="nav-item">📊 Dashboard</a>
+                <a href="/admin/projects" class="nav-item">🏗️ Projects</a>
+                <a href="/admin/services" class="nav-item">🛠️ Services</a>
+                <a href="/admin/inquiries" class="nav-item active">📨 Inquiries</a>
+                <a href="/admin/analytics" class="nav-item">📈 Analytics</a>
+                <a href="/admin/profile" class="nav-item">👤 Profile</a>
+                <a href="/admin/logout" class="nav-item" id="logoutBtn">🚪 Logout</a>
+            </nav>
+        </aside>
+        
+        <main class="main-area">
+            <div class="content">
+                <div class="top-bar">
+                    <div class="page-title">
+                        <h1>Manage Inquiries</h1>
+                        <p>View and respond to customer inquiries</p>
+                    </div>
+                    <div class="admin-profile">
+                        <span id="adminName">Loading...</span>
+                        <div class="admin-avatar" id="adminAvatar">AM</div>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📨</div>
+                        <div class="stat-info">
+                            <h3 id="totalInquiries">48</h3>
+                            <p>Total Inquiries</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🆕</div>
+                        <div class="stat-info">
+                            <h3 id="unreadCount">12</h3>
+                            <p>Unread</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <h3 id="repliedCount">28</h3>
+                            <p>Replied</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-info">
+                            <h3 id="thisWeekCount">8</h3>
+                            <p>This Week</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" onclick="filterInquiries('all')">All</button>
+                        <button class="filter-tab" onclick="filterInquiries('unread')">Unread</button>
+                        <button class="filter-tab" onclick="filterInquiries('read')">Read</button>
+                        <button class="filter-tab" onclick="filterInquiries('replied')">Replied</button>
+                        <button class="filter-tab" onclick="filterInquiries('archived')">Archived</button>
+                    </div>
+                    
+                    <div class="filter-tabs">
+                        <button class="filter-tab" onclick="filterByService('all')">All Services</button>
+                        <button class="filter-tab" onclick="filterByService('roofing')">🏠 Roofing</button>
+                        <button class="filter-tab" onclick="filterByService('interior')">✨ Interior</button>
+                        <button class="filter-tab" onclick="filterByService('repairs')">🔧 Repairs</button>
+                        <button class="filter-tab" onclick="filterByService('quoting')">📋 Quoting</button>
+                    </div>
+                    
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search by name, email...">
+                        <button onclick="searchInquiries()">🔍</button>
+                    </div>
+                </div>
+                
+                <!-- Inquiries Table -->
+                <div class="inquiries-container">
+                    <div class="table-header">
+                        <h2>All Inquiries</h2>
+                        <div class="bulk-actions">
+                            <button class="bulk-btn" onclick="markSelectedAs('read')">Mark as Read</button>
+                            <button class="bulk-btn" onclick="markSelectedAs('archived')">Archive</button>
+                            <button class="bulk-btn" onclick="deleteSelected()">Delete</button>
+                        </div>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="inquiries-table" id="inquiriesTable">
+                            <thead>
+                                <tr>
+                                    <th class="checkbox-cell"><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"></th>
+                                    <th>Client</th>
+                                    <th>Service</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Data will be loaded here via JavaScript -->
+                                <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading inquiries...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <button class="page-btn prev" onclick="changePage('prev')">←</button>
+                        <button class="page-btn active" onclick="changePage(1)">1</button>
+                        <button class="page-btn" onclick="changePage(2)">2</button>
+                        <button class="page-btn" onclick="changePage(3)">3</button>
+                        <button class="page-btn next" onclick="changePage('next')">Next →</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- View Inquiry Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Inquiry Details</h3>
+                <button class="close-btn" onclick="closeViewModal()">&times;</button>
+            </div>
+            
+            <div class="inquiry-detail" id="inquiryDetail">
+                <!-- Populated by JavaScript -->
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn primary" onclick="replyFromView()">Reply</button>
+                <button class="modal-btn secondary" onclick="markAsReadFromView()">Mark as Read</button>
+                <button class="modal-btn secondary" onclick="closeViewModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reply Modal -->
+    <div id="replyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reply to Inquiry</h3>
+                <button class="close-btn" onclick="closeReplyModal()">&times;</button>
+            </div>
+            
+            <div class="inquiry-detail" id="replyToDetail">
+                <!-- Populated by JavaScript -->
+            </div>
+            
+            <div class="reply-section">
+                <h4>Your Reply</h4>
+                <textarea class="reply-textarea" id="replyMessage" placeholder="Type your reply here..."></textarea>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label><input type="checkbox" id="sendCopy"> Send copy to myself</label>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn primary" onclick="sendReply()">Send Reply</button>
+                <button class="modal-btn secondary" onclick="closeReplyModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Delete Inquiry</h3>
+                <button class="close-btn" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <p>Are you sure you want to delete this inquiry?</p>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="modal-btn primary" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div id="successToast" class="toast">✅ Action completed</div>
+    
+    <script>
+        // DOM Elements
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        // State
+        let currentInquiryId = null;
+        let selectedInquiries = [];
+        let inquiries = [];
+        
+        // ========== INIT ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInquiries();
+            setupSidebar();
+            loadUserData();
+        });
+        
+        function loadUserData() {
+            const adminSession = localStorage.getItem('adminSession');
+            if (adminSession) {
+                try {
+                    const session = JSON.parse(adminSession);
+                    document.getElementById('adminName').textContent = session.fullName || 'Admin';
+                    if (session.username === 'antony') {
+                        document.getElementById('adminAvatar').textContent = 'AM';
+                    }
+                } catch (e) {}
+            } else {
+                document.getElementById('adminName').textContent = 'Admin';
+            }
+        }
+        
+        function loadInquiries() {
+            // Simulate API call
+            setTimeout(() => {
+                inquiries = [
+                    {
+                        id: 1,
+                        name: 'James Mwangi',
+                        email: 'james.mwangi@email.com',
+                        phone: '0712345678',
+                        service: 'roofing',
+                        subject: 'Urgent Roof Leak',
+                        message: 'I have a leak in my roof that needs urgent attention. The water is coming through the ceiling in the living room.',
+                        location: { county: 'Nairobi', area: 'Kilimani' },
+                        status: 'unread',
+                        date: '2026-02-24T10:30:00',
+                        relativeTime: '2 hours ago'
+                    },
+                    {
+                        id: 2,
+                        name: 'Mary Atieno',
+                        email: 'mary.atieno@email.com',
+                        phone: '0723456789',
+                        service: 'repairs',
+                        subject: 'Water Damaged Ceiling',
+                        message: 'Our office ceiling has water damage from a leak. Need assessment.',
+                        location: { county: 'Kisumu', area: 'CBD' },
+                        status: 'unread',
+                        date: '2026-02-24T09:15:00',
+                        relativeTime: '3 hours ago'
+                    },
+                    {
+                        id: 3,
+                        name: 'Alice Wanjiku',
+                        email: 'alice.wanjiku@email.com',
+                        phone: '0734567890',
+                        service: 'interior',
+                        subject: 'Gypsum Ceiling Quote',
+                        message: 'Need quote for gypsum ceiling in living room. Area approx 50 sq m.',
+                        location: { county: 'Kiambu', area: 'Thika' },
+                        status: 'read',
+                        date: '2026-02-23T16:20:00',
+                        relativeTime: 'Yesterday'
+                    },
+                    {
+                        id: 4,
+                        name: 'Peter Kariuki',
+                        email: 'peter.kariuki@email.com',
+                        phone: '0745678901',
+                        service: 'quoting',
+                        subject: 'Commercial Building Quote',
+                        message: 'Need detailed quote for commercial building in Machakos.',
+                        location: { county: 'Machakos', area: 'Town' },
+                        status: 'read',
+                        date: '2026-02-23T11:10:00',
+                        relativeTime: 'Yesterday'
+                    },
+                    {
+                        id: 5,
+                        name: 'John Otieno',
+                        email: 'john.otieno@email.com',
+                        phone: '0756789012',
+                        service: 'roofing',
+                        subject: 'New Roof Installation',
+                        message: 'Building a new home in Kajiado. Need quote for complete roof installation.',
+                        location: { county: 'Kajiado', area: 'Kitengela' },
+                        status: 'replied',
+                        date: '2026-02-22T10:45:00',
+                        relativeTime: '2 days ago'
+                    },
+                    {
+                        id: 6,
+                        name: 'Susan Kamau',
+                        email: 'susan.kamau@email.com',
+                        phone: '0767890123',
+                        service: 'interior',
+                        subject: 'Office Partitions',
+                        message: 'Need modern gypsum partitions for 6 offices in Mombasa.',
+                        location: { county: 'Mombasa', area: 'Nyali' },
+                        status: 'replied',
+                        date: '2026-02-22T13:20:00',
+                        relativeTime: '2 days ago'
+                    },
+                    {
+                        id: 7,
+                        name: 'David Mwangi',
+                        email: 'david.mwangi@email.com',
+                        phone: '0778901234',
+                        service: 'repairs',
+                        subject: 'Gutter Repair',
+                        message: 'Gutters are damaged and need repair or replacement.',
+                        location: { county: 'Nakuru', area: 'CBD' },
+                        status: 'archived',
+                        date: '2026-02-21T09:30:00',
+                        relativeTime: '3 days ago'
+                    },
+                    {
+                        id: 8,
+                        name: 'Grace Achieng',
+                        email: 'grace.achieng@email.com',
+                        phone: '0789012345',
+                        service: 'general',
+                        subject: 'General Inquiry',
+                        message: 'Do you operate in Kisumu? Please send information.',
+                        location: { county: 'Kisumu', area: 'CBD' },
+                        status: 'archived',
+                        date: '2026-02-21T08:15:00',
+                        relativeTime: '3 days ago'
+                    }
+                ];
+                
+                renderInquiries(inquiries);
+                updateStats();
+            }, 500);
+        }
+        
+        function renderInquiries(items) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            items.forEach(inquiry => {
+                const row = document.createElement('tr');
+                row.dataset.id = inquiry.id;
+                row.dataset.status = inquiry.status;
+                row.dataset.service = inquiry.service;
+                if (inquiry.status === 'unread') {
+                    row.classList.add('unread');
+                }
+                
+                const statusClass = {
+                    'unread': 'unread',
+                    'read': 'read',
+                    'replied': 'replied',
+                    'archived': 'archived'
+                }[inquiry.status];
+                
+                const serviceClass = {
+                    'roofing': 'roofing',
+                    'interior': 'interior',
+                    'repairs': 'repairs',
+                    'quoting': 'quoting',
+                    'general': 'general'
+                }[inquiry.service];
+                
+                const serviceDisplay = {
+                    'roofing': 'Roofing',
+                    'interior': 'Interior',
+                    'repairs': 'Repairs',
+                    'quoting': 'Quoting',
+                    'general': 'General'
+                }[inquiry.service];
+                
+                row.innerHTML = `
+                    <td class="checkbox-cell"><input type="checkbox" class="select-item" data-id="${inquiry.id}" onclick="event.stopPropagation()"></td>
+                    <td>
+                        <div class="client-info">
+                            <span class="client-name">${inquiry.name}</span>
+                            <span class="client-email">${inquiry.email}</span>
+                        </div>
+                    </td>
+                    <td><span class="service-badge ${serviceClass}">${serviceDisplay}</span></td>
+                    <td>${inquiry.subject}</td>
+                    <td><span class="status-badge ${statusClass}">${inquiry.status.charAt(0).toUpperCase() + inquiry.status.slice(1)}</span></td>
+                    <td>
+                        <div class="date-info">
+                            <span class="date-full">${new Date(inquiry.date).toLocaleDateString()}</span>
+                            <span class="date-relative">${inquiry.relativeTime}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-buttons" onclick="event.stopPropagation()">
+                            <button class="action-btn" onclick="viewInquiry(${inquiry.id})" title="View">👁️</button>
+                            <button class="action-btn" onclick="replyToInquiry(${inquiry.id})" title="Reply">📝</button>
+                            <button class="action-btn" onclick="toggleStatus(${inquiry.id})" title="Toggle Read">✓</button>
+                            <button class="action-btn delete" onclick="deleteInquiry(${inquiry.id})" title="Delete">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                
+                // Make row clickable to view
+                row.addEventListener('click', () => viewInquiry(inquiry.id));
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateStats() {
+            const total = inquiries.length;
+            const unread = inquiries.filter(i => i.status === 'unread').length;
+            const replied = inquiries.filter(i => i.status === 'replied').length;
+            const thisWeek = inquiries.filter(i => {
+                const date = new Date(i.date);
+                const now = new Date();
+                const weekAgo = new Date(now.setDate(now.getDate() - 7));
+                return date > weekAgo;
+            }).length;
+            
+            document.getElementById('totalInquiries').textContent = total;
+            document.getElementById('unreadCount').textContent = unread;
+            document.getElementById('repliedCount').textContent = replied;
+            document.getElementById('thisWeekCount').textContent = thisWeek;
+        }
+        
+        // ========== SIDEBAR ==========
+        function setupSidebar() {
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+            
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(event.target) && !menuToggle.contains(event.target) && sidebar.classList.contains('active')) {
+                        sidebar.classList.remove('active');
+                    }
+                }
+            });
+        }
+        
+        // ========== FILTERS ==========
+        function filterInquiries(status) {
+            const tabs = document.querySelectorAll('.filter-tab');
+            tabs.forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(status) || 
+                    (status === 'all' && tab.textContent === 'All')) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            const filtered = status === 'all' 
+                ? inquiries 
+                : inquiries.filter(i => i.status === status);
+            
+            renderInquiries(filtered);
+        }
+        
+        function filterByService(service) {
+            const filtered = service === 'all'
+                ? inquiries
+                : inquiries.filter(i => i.service === service);
+            
+            renderInquiries(filtered);
+        }
+        
+        function searchInquiries() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = inquiries.filter(i => 
+                i.name.toLowerCase().includes(term) ||
+                i.email.toLowerCase().includes(term) ||
+                i.subject.toLowerCase().includes(term)
+            );
+            renderInquiries(filtered);
+        }
+        
+        // ========== SELECT ALL ==========
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.select-item');
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+            updateSelected();
+        }
+        
+        function updateSelected() {
+            selectedInquiries = [];
+            document.querySelectorAll('.select-item:checked').forEach(cb => {
+                selectedInquiries.push(cb.dataset.id);
+            });
+        }
+        
+        function markSelectedAs(status) {
+            const count = selectedInquiries.length;
+            if (count === 0) {
+                showToast('Select at least one inquiry', 'error');
+                return;
+            }
+            
+            selectedInquiries.forEach(id => {
+                const inquiry = inquiries.find(i => i.id == id);
+                if (inquiry) {
+                    inquiry.status = status;
+                }
+            });
+            
+            renderInquiries(inquiries);
+            showToast(`${count} inquiries marked as ${status}`);
+        }
+        
+        function deleteSelected() {
+            const count = selectedInquiries.length;
+            if (count === 0) {
+                showToast('Select at least one inquiry', 'error');
+                return;
+            }
+            
+            if (confirm(`Delete ${count} inquiries?`)) {
+                inquiries = inquiries.filter(i => !selectedInquiries.includes(i.id.toString()));
+                renderInquiries(inquiries);
+                showToast(`${count} inquiries deleted`);
+            }
+        }
+        
+        // ========== VIEW INQUIRY ==========
+        function viewInquiry(id) {
+            currentInquiryId = id;
+            const inquiry = inquiries.find(i => i.id === id);
+            
+            const detail = document.getElementById('inquiryDetail');
+            detail.innerHTML = `
+                <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${inquiry.name}</span></div>
+                <div class="detail-row"><span class="detail-label">Phone:</span><span class="detail-value">${inquiry.phone}</span></div>
+                <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${inquiry.email}</span></div>
+                <div class="detail-row"><span class="detail-label">Service:</span><span class="detail-value">${inquiry.service}</span></div>
+                <div class="detail-row"><span class="detail-label">Subject:</span><span class="detail-value">${inquiry.subject}</span></div>
+                <div class="detail-row"><span class="detail-label">Location:</span><span class="detail-value">${inquiry.location.county}, ${inquiry.location.area}</span></div>
+                <div class="detail-row"><span class="detail-label">Date:</span><span class="detail-value">${new Date(inquiry.date).toLocaleString()}</span></div>
+                <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${inquiry.status}</span></div>
+                <div class="message-box">${inquiry.message}</div>
+            `;
+            
+            document.getElementById('viewModal').classList.add('show');
+        }
+        
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('show');
+        }
+        
+        function replyFromView() {
+            closeViewModal();
+            replyToInquiry(currentInquiryId);
+        }
+        
+        function markAsReadFromView() {
+            const inquiry = inquiries.find(i => i.id === currentInquiryId);
+            if (inquiry && inquiry.status === 'unread') {
+                inquiry.status = 'read';
+                renderInquiries(inquiries);
+                showToast('Marked as read');
+            }
+            closeViewModal();
+        }
+        
+        // ========== REPLY ==========
+        function replyToInquiry(id) {
+            currentInquiryId = id;
+            const inquiry = inquiries.find(i => i.id === id);
+            
+            const detail = document.getElementById('replyToDetail');
+            detail.innerHTML = `
+                <p><strong>To:</strong> ${inquiry.name} (${inquiry.email})</p>
+                <p><strong>Subject:</strong> Re: ${inquiry.subject}</p>
+            `;
+            
+            document.getElementById('replyModal').classList.add('show');
+        }
+        
+        function closeReplyModal() {
+            document.getElementById('replyModal').classList.remove('show');
+            document.getElementById('replyMessage').value = '';
+        }
+        
+        function sendReply() {
+            const message = document.getElementById('replyMessage').value;
+            if (!message.trim()) {
+                showToast('Please enter a reply message', 'error');
+                return;
+            }
+            
+            const inquiry = inquiries.find(i => i.id === currentInquiryId);
+            if (inquiry) {
+                inquiry.status = 'replied';
+                renderInquiries(inquiries);
+            }
+            
+            showToast('Reply sent successfully');
+            closeReplyModal();
+        }
+        
+        // ========== TOGGLE STATUS ==========
+        function toggleStatus(id) {
+            const inquiry = inquiries.find(i => i.id === id);
+            if (inquiry) {
+                if (inquiry.status === 'unread') {
+                    inquiry.status = 'read';
+                } else if (inquiry.status === 'read') {
+                    inquiry.status = 'unread';
+                }
+                renderInquiries(inquiries);
+                showToast('Status updated');
+            }
+        }
+        
+        // ========== DELETE ==========
+        function deleteInquiry(id) {
+            currentInquiryId = id;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+        
+        function confirmDelete() {
+            inquiries = inquiries.filter(i => i.id !== currentInquiryId);
+            renderInquiries(inquiries);
+            closeDeleteModal();
+            showToast('Inquiry deleted');
+        }
+        
+        // ========== PAGINATION ==========
+        function changePage(page) {
+            // Implement pagination logic
+            console.log('Change to page:', page);
+        }
+        
+        // ========== TOAST ==========
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('successToast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+        
+        // ========== LOGOUT ==========
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Logout?')) {
+                localStorage.removeItem('adminSession');
+                window.location.href = '/admin/logout';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Project Editor - Tonnie Roofing Admin</title>
+    <!-- Cloudinary Upload Widget -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Admin Layout */
+        .admin-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: #1a202c;
+            color: white;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #2d3748;
+        }
+        
+        .sidebar-header .logo span {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #d97706;
+        }
+        
+        .sidebar-header .founder {
+            font-size: 0.8rem;
+            color: #d97706;
+            margin-top: 0.3rem;
+        }
+        
+        .nav-menu {
+            padding: 1.5rem 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.5rem;
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: #2d3748;
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: #2d3748;
+            color: #d97706;
+            border-left-color: #d97706;
+        }
+        
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            background: #d97706;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* Main Area - SCROLLABLE */
+        .main-area {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #f8f9fa;
+        }
+        
+        .main-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .main-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .main-area::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 3px;
+        }
+        
+        .content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Migration Banner */
+        .migration-banner {
+            background: #fff3cd;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #ffc107;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .banner-close {
+            background: none;
+            border: none;
+            color: #856404;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .page-title h1 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 0.2rem;
+        }
+        
+        .page-title p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-avatar {
+            width: 44px;
+            height: 44px;
+            background: #d97706;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Form Container */
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .form-header h2 {
+            font-size: 1.3rem;
+            color: #333;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 48px;
+            font-size: 0.95rem;
+        }
+        
+        .btn-primary {
+            background: #d97706;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #b45f06;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(217, 119, 6, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+        
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #d97706;
+            background: white;
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        /* Scrollable Select Dropdown */
+        select.form-control[size] {
+            height: auto;
+            padding: 0;
+        }
+        
+        select.form-control[size] option {
+            padding: 0.8rem 1rem;
+        }
+        
+        select.form-control[size] option:hover {
+            background-color: #d97706;
+            color: white;
+        }
+        
+        /* Service Type Selection */
+        .service-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .service-option {
+            background: #f8f9fa;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            padding: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .service-option:hover {
+            border-color: #d97706;
+        }
+        
+        .service-option.active {
+            background: #d97706;
+            border-color: #d97706;
+            color: white;
+        }
+        
+        .service-option i {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Cloudinary Upload Section */
+        .image-upload-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .image-upload-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .image-count {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .add-image-btn {
+            background: #d97706;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            min-height: 44px;
+        }
+        
+        .add-image-btn:hover {
+            background: #b45f06;
+        }
+        
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+        }
+        
+        .image-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+            background: white;
+            aspect-ratio: 1;
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .image-item:hover .image-overlay {
+            opacity: 1;
+        }
+        
+        .image-action {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        
+        .image-action:hover {
+            background: #d97706;
+            color: white;
+        }
+        
+        .image-action.delete:hover {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .image-order {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: #d97706;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .upload-placeholder {
+            aspect-ratio: 1;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        .upload-placeholder:hover {
+            border-color: #d97706;
+            color: #d97706;
+        }
+        
+        .upload-placeholder i {
+            font-size: 2rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .upload-placeholder span {
+            font-size: 0.8rem;
+        }
+        
+        /* Service Specific Fields */
+        .service-fields {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            display: none;
+        }
+        
+        .service-fields.active {
+            display: block;
+        }
+        
+        /* Mabati Options Grid */
+        .mabati-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .mabati-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .mabati-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .others-container {
+            display: none;
+            margin-top: 0.5rem;
+        }
+        
+        .others-container.show {
+            display: block;
+        }
+        
+        /* Roofing Essentials Grid */
+        .essentials-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .essentials-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Materials List */
+        .materials-list {
+            margin-bottom: 1rem;
+        }
+        
+        .material-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .material-row input {
+            flex: 1;
+        }
+        
+        .material-row input:first-child {
+            flex: 2;
+        }
+        
+        .remove-material {
+            width: 40px;
+            height: 40px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .add-material {
+            background: #f8f9fa;
+            border: 1px dashed #ddd;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 48px;
+        }
+        
+        .add-material:hover {
+            border-color: #d97706;
+            color: #d97706;
+        }
+        
+        /* Working Days Notice */
+        .working-days-notice {
+            background: rgba(217, 119, 6, 0.1);
+            border-left: 4px solid #d97706;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+        
+        /* Sidebar Form */
+        .sidebar-form {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .toggle {
+            width: 50px;
+            height: 26px;
+            background: #ddd;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle.active {
+            background: #4caf50;
+        }
+        
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        
+        .toggle.active::after {
+            transform: translateX(24px);
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+        }
+        
+        .toast.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .image-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .image-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                z-index: 999;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .content {
+                padding: 4.5rem 1rem 1rem 1rem;
+            }
+            
+            .service-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .image-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .form-actions {
+                width: 100%;
+            }
+            
+            .form-actions .btn {
+                flex: 1;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .image-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" id="menuToggle">☰</button>
+    
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span>TONNIE<span style="color: #a0aec0;">Admin</span></span>
+                </div>
+                <div class="founder">Founded by Antony Mutia</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="/admin/dashboard" class="nav-item">📊 Dashboard</a>
+                <a href="/admin/projects" class="nav-item active">🏗️ Projects</a>
+                <a href="/admin/services" class="nav-item">🛠️ Services</a>
+                <a href="/admin/inquiries" class="nav-item">📨 Inquiries</a>
+                <a href="/admin/analytics" class="nav-item">📈 Analytics</a>
+                <a href="/admin/profile" class="nav-item">👤 Profile</a>
+                <a href="/admin/logout" class="nav-item" id="logoutBtn">🚪 Logout</a>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-area">
+            <div class="content">
+                <!-- Migration Banner -->
+                <div class="migration-banner" id="migrationBanner">
+                    <span><strong>⚠️ Migration Mode Active</strong></span>
+                    <button class="banner-close" onclick="hideBanner()">✕</button>
+                </div>
+                
+                <!-- Top Bar -->
+                <div class="top-bar">
+                    <div class="page-title">
+                        <h1 id="formTitle">Loading...</h1>
+                        <p id="formSubtitle"></p>
+                    </div>
+                    <div class="admin-profile">
+                        <span style="font-weight: 600;" id="adminName">Antony Mutia</span>
+                        <div class="admin-avatar" id="adminAvatar">AM</div>
+                    </div>
+                </div>
+                
+                <!-- Form Container -->
+                <div class="form-container">
+                    <div class="form-header">
+                        <h2>Project Information</h2>
+                        <div class="form-actions">
+                            <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                            <button class="btn btn-primary" onclick="saveProject()">Save Project</button>
+                        </div>
+                    </div>
+                    
+                    <form id="projectForm">
+                        <!-- Service Type Selection -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <span>🛠️</span> Service Type
+                            </div>
+                            <div class="service-selector" id="serviceSelector">
+                                <div class="service-option" data-service="roofing" onclick="selectService('roofing')">
+                                    <i>🏠</i>
+                                    <span>Roofing</span>
+                                </div>
+                                <div class="service-option" data-service="interior" onclick="selectService('interior')">
+                                    <i>✨</i>
+                                    <span>Interior Design</span>
+                                </div>
+                                <div class="service-option" data-service="repairs" onclick="selectService('repairs')">
+                                    <i>🔧</i>
+                                    <span>Repairs</span>
+                                </div>
+                                <div class="service-option" data-service="quoting" onclick="selectService('quoting')">
+                                    <i>📋</i>
+                                    <span>Quoting</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Basic Information -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <span>📋</span> Basic Information
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Project Title *</label>
+                                <input type="text" class="form-control" id="projectTitle" 
+                                       placeholder="e.g., Modern Roof Installation" 
+                                       oninput="updateTitle(this)">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="startDate">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="endDate">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Short Description</label>
+                                <textarea class="form-control" id="shortDescription" rows="2" 
+                                          placeholder="Brief description for cards"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Full Description</label>
+                                <textarea class="form-control" id="fullDescription" rows="4" 
+                                          placeholder="Detailed project description"></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Cloudinary Image Upload -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <span>🖼️</span> Project Images (Max 10)
+                            </div>
+                            
+                            <div class="image-upload-section">
+                                <div class="image-upload-header">
+                                    <span class="image-count" id="imageCount">0 of 10 used</span>
+                                    <button type="button" class="add-image-btn" onclick="openCloudinaryWidget()">
+                                        <span>➕</span> Upload
+                                    </button>
+                                </div>
+                                
+                                <div class="image-grid" id="imageGrid">
+                                    <div class="upload-placeholder" onclick="openCloudinaryWidget()">
+                                        <i>➕</i>
+                                        <span>Add Image</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <span>📍</span> Location
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">County *</label>
+                                    <select class="form-control" id="county" size="5" style="height: auto;">
+                                        <option value="">-- Select County --</option>
+                                        <option value="Baringo">Baringo</option>
+                                        <option value="Bomet">Bomet</option>
+                                        <option value="Bungoma">Bungoma</option>
+                                        <option value="Busia">Busia</option>
+                                        <option value="Elgeyo Marakwet">Elgeyo Marakwet</option>
+                                        <option value="Embu">Embu</option>
+                                        <option value="Garissa">Garissa</option>
+                                        <option value="Homa Bay">Homa Bay</option>
+                                        <option value="Isiolo">Isiolo</option>
+                                        <option value="Kajiado">Kajiado</option>
+                                        <option value="Kakamega">Kakamega</option>
+                                        <option value="Kericho">Kericho</option>
+                                        <option value="Kiambu">Kiambu</option>
+                                        <option value="Kilifi">Kilifi</option>
+                                        <option value="Kirinyaga">Kirinyaga</option>
+                                        <option value="Kisii">Kisii</option>
+                                        <option value="Kisumu">Kisumu</option>
+                                        <option value="Kitui">Kitui</option>
+                                        <option value="Kwale">Kwale</option>
+                                        <option value="Laikipia">Laikipia</option>
+                                        <option value="Lamu">Lamu</option>
+                                        <option value="Machakos">Machakos</option>
+                                        <option value="Makueni">Makueni</option>
+                                        <option value="Mandera">Mandera</option>
+                                        <option value="Marsabit">Marsabit</option>
+                                        <option value="Meru">Meru</option>
+                                        <option value="Migori">Migori</option>
+                                        <option value="Mombasa">Mombasa</option>
+                                        <option value="Murang'a">Murang'a</option>
+                                        <option value="Nairobi">Nairobi</option>
+                                        <option value="Nakuru">Nakuru</option>
+                                        <option value="Nandi">Nandi</option>
+                                        <option value="Narok">Narok</option>
+                                        <option value="Nyamira">Nyamira</option>
+                                        <option value="Nyandarua">Nyandarua</option>
+                                        <option value="Nyeri">Nyeri</option>
+                                        <option value="Samburu">Samburu</option>
+                                        <option value="Siaya">Siaya</option>
+                                        <option value="Taita Taveta">Taita Taveta</option>
+                                        <option value="Tana River">Tana River</option>
+                                        <option value="Tharaka Nithi">Tharaka Nithi</option>
+                                        <option value="Trans Nzoia">Trans Nzoia</option>
+                                        <option value="Turkana">Turkana</option>
+                                        <option value="Uasin Gishu">Uasin Gishu</option>
+                                        <option value="Vihiga">Vihiga</option>
+                                        <option value="Wajir">Wajir</option>
+                                        <option value="West Pokot">West Pokot</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Area</label>
+                                    <input type="text" class="form-control" id="area" placeholder="e.g., Kilimani">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Exact Location</label>
+                                <input type="text" class="form-control" id="exactLocation" placeholder="e.g., Argwings Kodhek Road">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Landmark</label>
+                                <input type="text" class="form-control" id="landmark" placeholder="e.g., Near Kilimani Mall">
+                            </div>
+                        </div>
+                        
+                        <!-- Roofing Fields -->
+                        <div class="service-fields" id="roofingFields">
+                            <div class="section-title">
+                                <span>🏠</span> Roofing Details
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Roof Type</label>
+                                    <select class="form-control" id="roofType">
+                                        <option value="Pitched Roof">Pitched Roof</option>
+                                        <option value="Flat Roof">Flat Roof</option>
+                                        <option value="Gable Roof">Gable Roof</option>
+                                        <option value="Hip Roof">Hip Roof</option>
+                                        <option value="Mansard Roof">Mansard Roof</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Mabati</label>
+                                    <select class="form-control" id="roofingSheets" onchange="toggleOtherMabati(this)">
+                                        <option value="Dumu Zas - 28 Gauge">Dumu Zas - 28 Gauge</option>
+                                        <option value="Dumu Zas - 26 Gauge">Dumu Zas - 26 Gauge</option>
+                                        <option value="Versatile - 28 Gauge">Versatile - 28 Gauge</option>
+                                        <option value="Versatile - 26 Gauge">Versatile - 26 Gauge</option>
+                                        <option value="Box Profile - 0.3mm">Box Profile - 0.3mm</option>
+                                        <option value="Box Profile - 0.5mm">Box Profile - 0.5mm</option>
+                                        <option value="Roman Tile - Jenga Tile">Roman Tile - Jenga Tile</option>
+                                        <option value="Roman Tile - Color Coated">Roman Tile - Color Coated</option>
+                                        <option value="Decra Tiles">Decra Tiles</option>
+                                        <option value="Color Bond">Color Bond</option>
+                                        <option value="Galvalume">Galvalume</option>
+                                        <option value="Others">Others</option>
+                                    </select>
+                                    <div id="otherMabatiContainer" class="others-container">
+                                        <input type="text" class="form-control" id="otherMabati" placeholder="Enter custom type">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Essentials</label>
+                                <div class="essentials-grid">
+                                    <div class="essentials-item">
+                                        <input type="checkbox" id="gutters"> 
+                                        <label for="gutters">Gutters</label>
+                                    </div>
+                                    <div class="essentials-item">
+                                        <input type="checkbox" id="ridgeCaps"> 
+                                        <label for="ridgeCaps">Ridge Caps</label>
+                                    </div>
+                                    <div class="essentials-item">
+                                        <input type="checkbox" id="flashing"> 
+                                        <label for="flashing">Flashing</label>
+                                    </div>
+                                    <div class="essentials-item">
+                                        <input type="checkbox" id="insulation"> 
+                                        <label for="insulation">Insulation</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Advantage</label>
+                                    <input type="text" class="form-control" id="advantage">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Warranty</label>
+                                    <input type="text" class="form-control" id="warranty">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Materials</label>
+                                <div id="materialsList" class="materials-list">
+                                    <div class="material-row">
+                                        <input type="text" class="form-control" placeholder="Material">
+                                        <input type="text" class="form-control" placeholder="Qty">
+                                        <button type="button" class="remove-material" onclick="removeMaterial(this)">✖</button>
+                                    </div>
+                                </div>
+                                <button type="button" class="add-material" onclick="addMaterial()">➕ Add Material</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Interior Fields -->
+                        <div class="service-fields" id="interiorFields">
+                            <div class="section-title">
+                                <span>✨</span> Interior Details
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Type</label>
+                                    <select class="form-control" id="interiorType">
+                                        <option value="Gypsum Ceiling">Gypsum Ceiling</option>
+                                        <option value="Wall Partitions">Wall Partitions</option>
+                                        <option value="Custom Fittings">Custom Fittings</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Material</label>
+                                    <input type="text" class="form-control" id="material">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Area (sq m)</label>
+                                    <input type="number" class="form-control" id="roomArea">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Rooms</label>
+                                    <input type="number" class="form-control" id="numRooms">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Repairs Fields -->
+                        <div class="service-fields" id="repairsFields">
+                            <div class="section-title">
+                                <span>🔧</span> Repair Details
+                            </div>
+                            
+                            <div class="working-days-notice">
+                                <p>⏰ Repairs: Mon-Fri 8am-6pm</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Problem</label>
+                                <textarea class="form-control" id="problemDescription" rows="3"></textarea>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Type</label>
+                                    <select class="form-control" id="repairType">
+                                        <option value="Emergency">Emergency</option>
+                                        <option value="Routine">Routine</option>
+                                        <option value="Restoration">Restoration</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Urgency</label>
+                                    <select class="form-control" id="urgency">
+                                        <option value="24h">24h</option>
+                                        <option value="2-3 days">2-3 days</option>
+                                        <option value="1 week">1 week</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quoting Fields -->
+                        <div class="service-fields" id="quotingFields">
+                            <div class="section-title">
+                                <span>📋</span> Quote Details
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Services</label>
+                                <div style="display: flex; gap: 1rem;">
+                                    <label>
+                                        <input type="checkbox" value="roofing"> Roofing
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" value="interior"> Interior
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Scope</label>
+                                <textarea class="form-control" rows="3" id="projectScope"></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Sidebar Settings -->
+                        <div class="sidebar-form">
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <select class="form-control" id="projectStatus">
+                                    <option value="active">Active</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="draft">Draft</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Featured</label>
+                                <div class="toggle-switch">
+                                    <div class="toggle" id="featuredToggle" onclick="toggleFeatured(this)"></div>
+                                    <span>Show on homepage</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Property</label>
+                                <select class="form-control" id="propertyType">
+                                    <option value="residential">Residential</option>
+                                    <option value="commercial">Commercial</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Client</label>
+                                <input type="text" class="form-control" id="clientName">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Value (KES)</label>
+                                <input type="text" class="form-control" id="projectCost">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Tags</label>
+                                <input type="text" class="form-control" id="tags" placeholder="comma, separated">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Toast -->
+    <div id="successToast" class="toast">✅ Saved</div>
+    
+    <script>
+        // ========== CONFIG ==========
+        const CLOUDINARY_CLOUD_NAME = '{{ cloudinary_cloud_name if cloudinary_cloud_name else "your-cloud-name" }}';
+        const CLOUDINARY_UPLOAD_PRESET = 'tonnie_roofing_preset';
+        
+        // ========== STATE ==========
+        let currentService = 'roofing';
+        let imageCount = 0;
+        let images = [];
+        let projectId = new URLSearchParams(window.location.search).get('id');
+        
+        // ========== LOAD PROJECT DATA IF EDITING ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            initCloudinaryWidget();
+            
+            // Set default service
+            document.querySelectorAll('.service-fields').forEach(f => f.classList.remove('active'));
+            document.getElementById('roofingFields').classList.add('active');
+            
+            // Load project data if editing
+            if (projectId) {
+                loadProjectData(projectId);
+            } else {
+                document.getElementById('formTitle').textContent = 'New Project';
+                document.getElementById('formSubtitle').textContent = 'Create a new project';
+            }
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('adminTheme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+            
+            // Set admin name
+            const adminSession = localStorage.getItem('adminSession');
+            if (adminSession) {
+                try {
+                    const session = JSON.parse(adminSession);
+                    if (session.username === 'antony') {
+                        document.getElementById('adminName').textContent = 'Antony Mutia';
+                        document.getElementById('adminAvatar').textContent = 'AM';
+                    }
+                } catch (e) {}
+            }
+        });
+        
+        // ========== LOAD PROJECT DATA ==========
+        function loadProjectData(id) {
+            // Simulate loading - in production, this would be an API call
+            setTimeout(() => {
+                // Example data - replace with actual API call
+                const mockProject = {
+                    id: id,
+                    title: 'Modern Roof Installation',
+                    service: 'roofing',
+                    startDate: '2026-02-20',
+                    endDate: '2026-03-15',
+                    shortDescription: 'Complete roof replacement with Dumu zas',
+                    fullDescription: 'Detailed description here...',
+                    location: {
+                        county: 'Nairobi',
+                        area: 'Kilimani',
+                        exact: 'Argwings Kodhek Road',
+                        landmark: 'Near Kilimani Mall'
+                    },
+                    roofType: 'Pitched Roof',
+                    roofingSheets: 'Dumu Zas - 28 Gauge',
+                    advantage: 'Durable, Weather-resistant',
+                    warranty: '25 Years',
+                    status: 'active',
+                    propertyType: 'residential',
+                    clientName: 'Mr. & Mrs. Mwangi',
+                    projectValue: '450,000',
+                    tags: 'roofing, modern, residential',
+                    featured: true,
+                    images: [
+                        { url: 'https://res.cloudinary.com/your-cloud/image/upload/v1/tonnie-roofing/projects/roofing1-1', public_id: 'tonnie-roofing/projects/roofing1-1', description: 'Completed roof' }
+                    ],
+                    materials: [
+                        { name: 'Dumu Zas 28 Gauge', quantity: '850 pcs' },
+                        { name: 'Waterproofing', quantity: '120 m²' }
+                    ]
+                };
+                
+                // Update form
+                document.getElementById('projectTitle').value = mockProject.title;
+                document.getElementById('formTitle').textContent = `Edit: ${mockProject.title}`;
+                document.getElementById('formSubtitle').textContent = `Editing project #${id}`;
+                document.getElementById('startDate').value = mockProject.startDate;
+                document.getElementById('endDate').value = mockProject.endDate;
+                document.getElementById('shortDescription').value = mockProject.shortDescription;
+                document.getElementById('fullDescription').value = mockProject.fullDescription;
+                document.getElementById('county').value = mockProject.location.county;
+                document.getElementById('area').value = mockProject.location.area;
+                document.getElementById('exactLocation').value = mockProject.location.exact;
+                document.getElementById('landmark').value = mockProject.location.landmark;
+                document.getElementById('projectStatus').value = mockProject.status;
+                document.getElementById('propertyType').value = mockProject.propertyType;
+                document.getElementById('clientName').value = mockProject.clientName;
+                document.getElementById('projectCost').value = mockProject.projectValue;
+                document.getElementById('tags').value = mockProject.tags;
+                
+                if (mockProject.featured) {
+                    document.getElementById('featuredToggle').classList.add('active');
+                }
+                
+                // Set service
+                currentService = mockProject.service;
+                selectService(currentService);
+                
+                // Roofing specific
+                if (currentService === 'roofing') {
+                    document.getElementById('roofType').value = mockProject.roofType;
+                    document.getElementById('roofingSheets').value = mockProject.roofingSheets;
+                    document.getElementById('advantage').value = mockProject.advantage;
+                    document.getElementById('warranty').value = mockProject.warranty;
+                    
+                    // Add materials
+                    document.getElementById('materialsList').innerHTML = '';
+                    mockProject.materials.forEach(m => {
+                        addMaterialWithValues(m.name, m.quantity);
+                    });
+                }
+                
+                // Add images
+                mockProject.images.forEach(img => {
+                    addImageToGrid(img.url, img.public_id, img.description);
+                });
+                
+            }, 500);
+        }
+        
+        function addMaterialWithValues(name, qty) {
+            const row = document.createElement('div');
+            row.className = 'material-row';
+            row.innerHTML = `
+                <input type="text" class="form-control" placeholder="Material" value="${name}">
+                <input type="text" class="form-control" placeholder="Qty" value="${qty}">
+                <button type="button" class="remove-material" onclick="removeMaterial(this)">✖</button>
+            `;
+            document.getElementById('materialsList').appendChild(row);
+        }
+        
+        // ========== SIDEBAR ==========
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+        
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const toggle = document.getElementById('menuToggle');
+                if (!sidebar.contains(event.target) && !toggle.contains(event.target) && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+        
+        // ========== TITLE UPDATE ==========
+        function updateTitle(input) {
+            const title = input.value.trim();
+            if (title) {
+                document.getElementById('formTitle').textContent = `Edit: ${title}`;
+            } else {
+                document.getElementById('formTitle').textContent = projectId ? 'Edit Project' : 'New Project';
+            }
+        }
+        
+        // ========== CLOUDINARY ==========
+        let cloudinaryWidget;
+        
+        function initCloudinaryWidget() {
+            cloudinaryWidget = cloudinary.createUploadWidget({
+                cloudName: CLOUDINARY_CLOUD_NAME,
+                uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+                folder: 'tonnie-roofing/projects',
+                maxFiles: 10,
+                maxFileSize: 5000000,
+                showPoweredBy: false,
+                sources: ['local', 'url', 'camera']
+            }, (error, result) => {
+                if (!error && result && result.event === "success") {
+                    addImageToGrid(result.info.secure_url, result.info.public_id, 'New image');
+                }
+            });
+        }
+        
+        function openCloudinaryWidget() {
+            if (imageCount >= 10) {
+                showToast('Max 10 images', 'error');
+                return;
+            }
+            cloudinaryWidget.open();
+        }
+        
+        function addImageToGrid(url, publicId, description) {
+            const grid = document.getElementById('imageGrid');
+            const placeholder = grid.lastElementChild;
+            
+            images.push({ 
+                id: Date.now() + imageCount, 
+                url: url, 
+                public_id: publicId, 
+                description: description 
+            });
+            
+            const item = document.createElement('div');
+            item.className = 'image-item';
+            item.dataset.id = images[images.length-1].id;
+            item.innerHTML = `
+                <img src="${url}" class="image-preview" alt="Project image">
+                <div class="image-order">${imageCount + 1}</div>
+                <div class="image-overlay">
+                    <div class="image-action delete" onclick="deleteImage(this)">🗑️</div>
+                </div>
+            `;
+            
+            grid.insertBefore(item, placeholder);
+            imageCount++;
+            document.getElementById('imageCount').textContent = `${imageCount} of 10 used`;
+        }
+        
+        function deleteImage(btn) {
+            if (confirm('Delete this image?')) {
+                const item = btn.closest('.image-item');
+                item.remove();
+                imageCount--;
+                document.getElementById('imageCount').textContent = `${imageCount} of 10 used`;
+                
+                // Reorder remaining images
+                const items = document.querySelectorAll('.image-item:not(.upload-placeholder)');
+                items.forEach((item, index) => {
+                    item.querySelector('.image-order').textContent = index + 1;
+                });
+            }
+        }
+        
+        // ========== SERVICE SELECTION ==========
+        function selectService(service) {
+            currentService = service;
+            
+            // Update UI
+            document.querySelectorAll('.service-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.service === service) {
+                    opt.classList.add('active');
+                }
+            });
+            
+            // Show relevant fields
+            document.querySelectorAll('.service-fields').forEach(f => f.classList.remove('active'));
+            document.getElementById(service + 'Fields').classList.add('active');
+        }
+        
+        // ========== MABATI ==========
+        function toggleOtherMabati(select) {
+            const container = document.getElementById('otherMabatiContainer');
+            if (select.value === 'Others') {
+                container.classList.add('show');
+            } else {
+                container.classList.remove('show');
+            }
+        }
+        
+        // ========== MATERIALS ==========
+        function addMaterial() {
+            const row = document.createElement('div');
+            row.className = 'material-row';
+            row.innerHTML = `
+                <input type="text" class="form-control" placeholder="Material">
+                <input type="text" class="form-control" placeholder="Qty">
+                <button type="button" class="remove-material" onclick="removeMaterial(this)">✖</button>
+            `;
+            document.getElementById('materialsList').appendChild(row);
+        }
+        
+        function removeMaterial(btn) {
+            if (document.querySelectorAll('.material-row').length > 1) {
+                btn.closest('.material-row').remove();
+            } else {
+                showToast('At least one material required', 'error');
+            }
+        }
+        
+        // ========== TOGGLE ==========
+        function toggleFeatured(el) {
+            el.classList.toggle('active');
+        }
+        
+        // ========== SAVE ==========
+        function saveProject() {
+            const title = document.getElementById('projectTitle').value.trim();
+            if (!title) {
+                showToast('Project title is required', 'error');
+                document.getElementById('projectTitle').focus();
+                return;
+            }
+            
+            showToast('Saving project...');
+            
+            // Collect form data
+            const projectData = {
+                id: projectId || 'new',
+                service: currentService,
+                title: title,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                shortDescription: document.getElementById('shortDescription').value,
+                fullDescription: document.getElementById('fullDescription').value,
+                location: {
+                    county: document.getElementById('county').value,
+                    area: document.getElementById('area').value,
+                    exact: document.getElementById('exactLocation').value,
+                    landmark: document.getElementById('landmark').value
+                },
+                status: document.getElementById('projectStatus').value,
+                propertyType: document.getElementById('propertyType').value,
+                clientName: document.getElementById('clientName').value,
+                projectValue: document.getElementById('projectCost').value,
+                tags: document.getElementById('tags').value,
+                featured: document.getElementById('featuredToggle').classList.contains('active'),
+                images: images
+            };
+            
+            // Add service-specific data
+            if (currentService === 'roofing') {
+                projectData.roofType = document.getElementById('roofType').value;
+                projectData.roofingSheets = document.getElementById('roofingSheets').value;
+                projectData.advantage = document.getElementById('advantage').value;
+                projectData.warranty = document.getElementById('warranty').value;
+                
+                // Collect materials
+                const materials = [];
+                document.querySelectorAll('#materialsList .material-row').forEach(row => {
+                    const inputs = row.querySelectorAll('input');
+                    if (inputs[0].value && inputs[1].value) {
+                        materials.push({
+                            name: inputs[0].value,
+                            quantity: inputs[1].value
+                        });
+                    }
+                });
+                projectData.materials = materials;
+            } else if (currentService === 'interior') {
+                projectData.interiorType = document.getElementById('interiorType').value;
+                projectData.material = document.getElementById('material').value;
+                projectData.roomArea = document.getElementById('roomArea').value;
+                projectData.numRooms = document.getElementById('numRooms').value;
+            } else if (currentService === 'repairs') {
+                projectData.problemDescription = document.getElementById('problemDescription').value;
+                projectData.repairType = document.getElementById('repairType').value;
+                projectData.urgency = document.getElementById('urgency').value;
+            } else if (currentService === 'quoting') {
+                const quoteServices = [];
+                document.querySelectorAll('#quotingFields input[type="checkbox"]:checked').forEach(cb => {
+                    quoteServices.push(cb.value);
+                });
+                projectData.servicesForQuote = quoteServices;
+                projectData.projectScope = document.getElementById('projectScope').value;
+            }
+            
+            console.log('Saving:', projectData);
+            
+            // Simulate API call
+            setTimeout(() => {
+                showToast('Project saved successfully!');
+                setTimeout(() => {
+                    window.location.href = '/admin/projects';
+                }, 1000);
+            }, 500);
+        }
+        
+        function cancelEdit() {
+            if (confirm('Discard changes?')) {
+                window.location.href = '/admin/projects';
+            }
+        }
+        
+        // ========== TOAST ==========
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('successToast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+        
+        // ========== MISC ==========
+        function hideBanner() {
+            document.getElementById('migrationBanner').style.display = 'none';
+        }
+        
+        // ========== LOGOUT ==========
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Logout?')) {
+                window.location.href = '/admin/logout';
+            }
+        });
+        
+        // ========== KEYBOARD SHORTCUT ==========
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveProject();
+            }
+        });
+    </script>
+</body>
+</html>,

@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Manage Services - Tonnie Roofing Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Admin Layout */
+        .admin-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: #1a202c;
+            color: white;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #2d3748;
+        }
+        
+        .sidebar-header .logo span {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #d97706;
+        }
+        
+        .sidebar-header .founder {
+            font-size: 0.8rem;
+            color: #d97706;
+            margin-top: 0.3rem;
+        }
+        
+        .nav-menu {
+            padding: 1.5rem 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.5rem;
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: #2d3748;
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: #2d3748;
+            color: #d97706;
+            border-left-color: #d97706;
+        }
+        
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            background: #d97706;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* Main Area - SCROLLABLE */
+        .main-area {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #f8f9fa;
+        }
+        
+        .main-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .main-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .main-area::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 3px;
+        }
+        
+        .content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .page-title h1 {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        
+        .page-title p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-avatar {
+            width: 44px;
+            height: 44px;
+            background: #d97706;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            position: relative;
+            border-left: 4px solid transparent;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .service-card.roofing {
+            border-left-color: #0066cc;
+        }
+        
+        .service-card.interior {
+            border-left-color: #7b1fa2;
+        }
+        
+        .service-card.repairs {
+            border-left-color: #c62828;
+        }
+        
+        .service-card.quoting {
+            border-left-color: #ef6c00;
+        }
+        
+        .service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        .service-status {
+            padding: 0.3rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .service-status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .service-status.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .service-name {
+            font-size: 1.4rem;
+            margin-bottom: 0.3rem;
+            color: #333;
+        }
+        
+        .service-slug {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 1rem;
+            font-family: monospace;
+        }
+        
+        .service-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .features-list {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .features-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        
+        .features-list li::before {
+            content: "✓";
+            color: #d97706;
+            font-weight: bold;
+        }
+        
+        .service-stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat {
+            flex: 1;
+            text-align: center;
+            padding: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #d97706;
+            font-size: 1.2rem;
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .service-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            min-height: 40px;
+        }
+        
+        .action-btn:hover {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+        }
+        
+        .action-btn.delete:hover {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+        
+        /* Add Service Card */
+        .add-service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 2px dashed #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 300px;
+        }
+        
+        .add-service-card:hover {
+            border-color: #d97706;
+            background: #fff9f0;
+        }
+        
+        .add-icon {
+            width: 70px;
+            height: 70px;
+            background: #f8f9fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #d97706;
+        }
+        
+        .add-service-card h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .add-service-card p {
+            color: #666;
+            text-align: center;
+            max-width: 200px;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h3 {
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #d97706;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .feature-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-row input {
+            flex: 1;
+        }
+        
+        .remove-feature {
+            width: 40px;
+            height: 40px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .add-feature {
+            background: #f8f9fa;
+            border: 1px dashed #ddd;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 48px;
+        }
+        
+        .add-feature:hover {
+            border-color: #d97706;
+            color: #d97706;
+        }
+        
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .toggle {
+            width: 50px;
+            height: 26px;
+            background: #ddd;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle.active {
+            background: #4caf50;
+        }
+        
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        
+        .toggle.active::after {
+            transform: translateX(24px);
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            min-height: 48px;
+        }
+        
+        .modal-btn.cancel {
+            background: #f8f9fa;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        
+        .modal-btn.confirm {
+            background: #d97706;
+            color: white;
+        }
+        
+        .modal-btn.delete-confirm {
+            background: #dc3545;
+            color: white;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .toast.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                z-index: 999;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .content {
+                padding: 4.5rem 1rem 1rem 1rem;
+            }
+            
+            .service-stats {
+                flex-direction: column;
+            }
+            
+            .service-actions {
+                flex-wrap: wrap;
+            }
+            
+            .action-btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menuToggle">☰</button>
+    
+    <div class="admin-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span>TONNIE<span style="color: #a0aec0;">Admin</span></span>
+                </div>
+                <div class="founder">Founded by Antony Mutia</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="/admin/dashboard" class="nav-item">📊 Dashboard</a>
+                <a href="/admin/projects" class="nav-item">🏗️ Projects</a>
+                <a href="/admin/services" class="nav-item active">🛠️ Services</a>
+                <a href="/admin/inquiries" class="nav-item">📨 Inquiries</a>
+                <a href="/admin/analytics" class="nav-item">📈 Analytics</a>
+                <a href="/admin/profile" class="nav-item">👤 Profile</a>
+                <a href="/admin/logout" class="nav-item" id="logoutBtn">🚪 Logout</a>
+            </nav>
+        </aside>
+        
+        <main class="main-area">
+            <div class="content">
+                <!-- Top Bar -->
+                <div class="top-bar">
+                    <div class="page-title">
+                        <h1>Manage Services</h1>
+                        <p>Add, edit, or remove services offered by your company</p>
+                    </div>
+                    <div class="admin-profile">
+                        <span id="adminName">Loading...</span>
+                        <div class="admin-avatar" id="adminAvatar">AM</div>
+                    </div>
+                </div>
+                
+                <!-- Services Grid -->
+                <div class="services-grid" id="servicesGrid">
+                    <!-- Services will be loaded here via JavaScript -->
+                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">Loading services...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Edit Service Modal -->
+    <div id="editServiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Edit Service</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <form id="serviceForm">
+                <div class="form-group">
+                    <label class="form-label">Service Name</label>
+                    <input type="text" class="form-control" id="serviceName">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Service Slug</label>
+                    <input type="text" class="form-control" id="serviceSlug">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Icon</label>
+                        <input type="text" class="form-control" id="serviceIcon" placeholder="e.g., 🏠">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Color</label>
+                        <select class="form-control" id="serviceColor">
+                            <option value="#0066cc">Blue</option>
+                            <option value="#7b1fa2">Purple</option>
+                            <option value="#c62828">Red</option>
+                            <option value="#ef6c00">Orange</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Short Description</label>
+                    <textarea class="form-control" id="shortDescription" rows="2"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Full Description</label>
+                    <textarea class="form-control" id="fullDescription" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Features</label>
+                    <div id="featuresContainer"></div>
+                    <button type="button" class="add-feature" onclick="addFeature()">➕ Add Feature</button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <div class="toggle-switch">
+                        <div class="toggle active" id="statusToggle" onclick="toggleModalStatus(this)"></div>
+                        <span id="statusText">Active</span>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+                <button class="modal-btn confirm" onclick="saveService()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Delete Service</h3>
+                <button class="close-btn" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <p>Are you sure you want to delete this service?</p>
+            <p style="color: #dc3545; margin-top: 0.5rem;">This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="modal-btn delete-confirm" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div id="successToast" class="toast">✅ Saved</div>
+    
+    <script>
+        // State
+        let currentService = null;
+        let serviceStatus = true;
+        
+        // DOM Elements
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        // ========== INIT ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            loadServices();
+            setupSidebar();
+            loadUserData();
+        });
+        
+        function loadUserData() {
+            const adminSession = localStorage.getItem('adminSession');
+            if (adminSession) {
+                try {
+                    const session = JSON.parse(adminSession);
+                    document.getElementById('adminName').textContent = session.fullName || 'Admin';
+                } catch (e) {
+                    document.getElementById('adminName').textContent = 'Admin';
+                }
+            } else {
+                document.getElementById('adminName').textContent = 'Admin';
+            }
+        }
+        
+        // ========== SIDEBAR ==========
+        function setupSidebar() {
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+            
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(event.target) && !menuToggle.contains(event.target) && sidebar.classList.contains('active')) {
+                        sidebar.classList.remove('active');
+                    }
+                }
+            });
+        }
+        
+        // ========== LOAD SERVICES ==========
+        function loadServices() {
+            // Simulate API call
+            setTimeout(() => {
+                const services = [
+                    {
+                        id: 1,
+                        name: 'Roofing',
+                        slug: 'roofing',
+                        icon: '🏠',
+                        color: '#0066cc',
+                        shortDescription: 'Professional roof installation and maintenance',
+                        fullDescription: 'Complete roofing solutions using quality Kenyan mabati.',
+                        features: [
+                            'New roof installation',
+                            'Roof replacement',
+                            'Leak repairs',
+                            'Inspections'
+                        ],
+                        stats: { projects: 24, inquiries: 12, images: 3 },
+                        active: true
+                    },
+                    {
+                        id: 2,
+                        name: 'Interior Design',
+                        slug: 'interior',
+                        icon: '✨',
+                        color: '#7b1fa2',
+                        shortDescription: 'Modern interior design solutions',
+                        fullDescription: 'Transform your spaces with gypsum installations.',
+                        features: [
+                            'Gypsum ceilings',
+                            'Wall partitions',
+                            'Custom fittings',
+                            'Lighting design'
+                        ],
+                        stats: { projects: 12, inquiries: 8, images: 2 },
+                        active: true
+                    },
+                    {
+                        id: 3,
+                        name: 'Repairs',
+                        slug: 'repairs',
+                        icon: '🔧',
+                        color: '#c62828',
+                        shortDescription: 'Professional repair services',
+                        fullDescription: 'Quick response for roofing and structural issues.',
+                        features: [
+                            'Roof leak repairs',
+                            'Ceiling repairs',
+                            'Structural fixes',
+                            'Maintenance'
+                        ],
+                        stats: { projects: 8, inquiries: 15, images: 2 },
+                        active: true
+                    },
+                    {
+                        id: 4,
+                        name: 'Quoting Service',
+                        slug: 'quoting',
+                        icon: '📋',
+                        color: '#ef6c00',
+                        shortDescription: 'Detailed project quotes',
+                        fullDescription: 'Get accurate quotes for your projects.',
+                        features: [
+                            'Project assessment',
+                            'Material calculations',
+                            'Cost estimation',
+                            'Timeline planning'
+                        ],
+                        stats: { projects: 4, inquiries: 20, images: 1 },
+                        active: true
+                    }
+                ];
+                
+                renderServices(services);
+            }, 500);
+        }
+        
+        function renderServices(services) {
+            const grid = document.getElementById('servicesGrid');
+            grid.innerHTML = '';
+            
+            services.forEach(service => {
+                const card = document.createElement('div');
+                card.className = `service-card ${service.slug}`;
+                card.dataset.id = service.id;
+                card.dataset.name = service.name;
+                
+                card.innerHTML = `
+                    <div class="service-header">
+                        <div class="service-icon">${service.icon}</div>
+                        <span class="service-status ${service.active ? 'active' : 'inactive'}">${service.active ? 'Active' : 'Inactive'}</span>
+                    </div>
+                    <h2 class="service-name">${service.name}</h2>
+                    <div class="service-slug">Slug: ${service.slug}</div>
+                    <p class="service-description">${service.shortDescription}</p>
+                    
+                    <ul class="features-list">
+                        ${service.features.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                    
+                    <div class="service-stats">
+                        <div class="stat">
+                            <div class="stat-value">${service.stats.projects}</div>
+                            <div class="stat-label">Projects</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${service.stats.inquiries}</div>
+                            <div class="stat-label">Inquiries</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${service.stats.images}</div>
+                            <div class="stat-label">Images</div>
+                        </div>
+                    </div>
+                    
+                    <div class="service-actions">
+                        <button class="action-btn" onclick="editService(${service.id})">✏️ Edit</button>
+                        <button class="action-btn" onclick="toggleServiceStatus(${service.id})">🔄 Toggle</button>
+                        <button class="action-btn delete" onclick="deleteService(${service.id})">🗑️ Delete</button>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+            
+            // Add "Add New" card
+            const addCard = document.createElement('div');
+            addCard.className = 'add-service-card';
+            addCard.onclick = showAddServiceModal;
+            addCard.innerHTML = `
+                <div class="add-icon">➕</div>
+                <h3>Add New Service</h3>
+                <p>Create a new service offering</p>
+            `;
+            grid.appendChild(addCard);
+        }
+        
+        // ========== SERVICE ACTIONS ==========
+        function editService(id) {
+            currentService = id;
+            document.getElementById('modalTitle').textContent = 'Edit Service';
+            
+            // Simulate loading service data
+            const mockService = {
+                name: 'Roofing',
+                slug: 'roofing',
+                icon: '🏠',
+                color: '#0066cc',
+                shortDescription: 'Professional roof installation',
+                fullDescription: 'Complete roofing solutions',
+                features: ['New roof', 'Repairs', 'Inspections'],
+                active: true
+            };
+            
+            document.getElementById('serviceName').value = mockService.name;
+            document.getElementById('serviceSlug').value = mockService.slug;
+            document.getElementById('serviceIcon').value = mockService.icon;
+            document.getElementById('serviceColor').value = mockService.color;
+            document.getElementById('shortDescription').value = mockService.shortDescription;
+            document.getElementById('fullDescription').value = mockService.fullDescription;
+            
+            const container = document.getElementById('featuresContainer');
+            container.innerHTML = '';
+            mockService.features.forEach(f => {
+                addFeatureRow(f);
+            });
+            
+            document.getElementById('statusToggle').classList.toggle('active', mockService.active);
+            document.getElementById('statusText').textContent = mockService.active ? 'Active' : 'Inactive';
+            serviceStatus = mockService.active;
+            
+            showModal();
+        }
+        
+        function toggleServiceStatus(id) {
+            const card = document.querySelector(`.service-card[data-id="${id}"]`);
+            const badge = card.querySelector('.service-status');
+            
+            if (badge.classList.contains('active')) {
+                badge.classList.remove('active');
+                badge.classList.add('inactive');
+                badge.textContent = 'Inactive';
+            } else {
+                badge.classList.remove('inactive');
+                badge.classList.add('active');
+                badge.textContent = 'Active';
+            }
+            
+            showToast('Status updated');
+        }
+        
+        function deleteService(id) {
+            currentService = id;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+        
+        function showAddServiceModal() {
+            currentService = null;
+            document.getElementById('modalTitle').textContent = 'Add New Service';
+            
+            document.getElementById('serviceName').value = '';
+            document.getElementById('serviceSlug').value = '';
+            document.getElementById('serviceIcon').value = '';
+            document.getElementById('shortDescription').value = '';
+            document.getElementById('fullDescription').value = '';
+            document.getElementById('featuresContainer').innerHTML = '';
+            addFeatureRow('');
+            
+            document.getElementById('statusToggle').classList.add('active');
+            document.getElementById('statusText').textContent = 'Active';
+            serviceStatus = true;
+            
+            showModal();
+        }
+        
+        // ========== FEATURES ==========
+        function addFeatureRow(value = '') {
+            const container = document.getElementById('featuresContainer');
+            const row = document.createElement('div');
+            row.className = 'feature-row';
+            row.innerHTML = `
+                <input type="text" class="form-control" value="${value}" placeholder="Feature">
+                <button type="button" class="remove-feature" onclick="removeFeature(this)">✖</button>
+            `;
+            container.appendChild(row);
+        }
+        
+        function addFeature() {
+            addFeatureRow('');
+        }
+        
+        function removeFeature(btn) {
+            if (document.querySelectorAll('.feature-row').length > 1) {
+                btn.closest('.feature-row').remove();
+            }
+        }
+        
+        // ========== MODAL ==========
+        function showModal() {
+            document.getElementById('editServiceModal').classList.add('show');
+        }
+        
+        function closeModal() {
+            document.getElementById('editServiceModal').classList.remove('show');
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+            currentService = null;
+        }
+        
+        function confirmDelete() {
+            if (currentService) {
+                const card = document.querySelector(`.service-card[data-id="${currentService}"]`);
+                if (card) {
+                    card.remove();
+                }
+                showToast('Service deleted');
+            }
+            closeDeleteModal();
+        }
+        
+        function toggleModalStatus(element) {
+            element.classList.toggle('active');
+            serviceStatus = !serviceStatus;
+            document.getElementById('statusText').textContent = serviceStatus ? 'Active' : 'Inactive';
+        }
+        
+        function saveService() {
+            const name = document.getElementById('serviceName').value;
+            if (!name) {
+                showToast('Service name required', 'error');
+                return;
+            }
+            
+            showToast('Service saved');
+            closeModal();
+        }
+        
+        // ========== TOAST ==========
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('successToast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+        
+        // ========== LOGOUT ==========
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Logout?')) {
+                localStorage.removeItem('adminSession');
+                window.location.href = '/admin/logout';
+            }
+        });
+    </script>
+</body>
+</html>
