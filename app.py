@@ -20,6 +20,15 @@ from models import MABATI_OPTIONS as DEFAULT_MABATI, ROOFING_ESSENTIALS as DEFAU
 load_dotenv()
 
 app = Flask(__name__)
+app.config.from_object(Config)
+
+# Initialize extensions
+db.init_app(app)
+session.init_app(app)
+migrate.init_app(app, db)
+
+# Import models
+from models import Admin, Profile, Service, Project, Inquiry, Setting
 
 # ========== CONFIGURATION ==========
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-change-this')
