@@ -563,7 +563,7 @@ def delete_image():
         logger.error(f"Cloudinary delete error: {e}")
         return jsonify({'error': 'Delete failed'}), 500
 
+# ========== MAIN ENTRY POINT ==========
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)
     app.run(debug=False, host='0.0.0.0', port=port)
