@@ -1,7 +1,0 @@
-Flask==2.3.3
-gunicorn==21.2.0
-flask-session==0.5.0
-python-dotenv==1.0.0
-Pillow==11.1.0
-cloudinary==1.36.0
-requests==2.31.0
