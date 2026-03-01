@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: tonnie-roofing
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: |
+      pip install -r requirements.txt
+      python init_db.py
+    startCommand: gunicorn --config gunicorn.conf.py app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tonnie-roofing-db
+          property: connectionString
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+databases:
+  - name: tonnie-roofing-db
+    databaseName: tonnie_roofing
+    plan: free
+    region: oregon
