@@ -1,116 +1,126 @@
+"""Database models for Tonnie Roofing"""
 from extensions import db
 from datetime import datetime
-import uuid
-
-def generate_id():
-    """Generate a unique ID"""
-    return str(uuid.uuid4())[:8]
-
-# ========== STATIC DATA LISTS ==========
-MABATI_OPTIONS = [
-    "Dumu Zas - 28 Gauge", "Dumu Zas - 26 Gauge", "Dumu Zas - 30 Gauge",
-    "Versatile - 28 Gauge", "Versatile - 26 Gauge",
-    "Box Profile - 0.3mm", "Box Profile - 0.4mm", "Box Profile - 0.5mm",
-    "Roman Tile - 28 Gauge", "Roman Tile - 26 Gauge", "Roman Tile - Color Coated",
-    "Roman Tile - Jenga Tile", "Roman Tile - Modern Tile", "Roman Tile - Traditional",
-    "Corrugated GCI - 28 Gauge", "Corrugated GCI - 26 Gauge", "Corrugated GCI - 30 Gauge",
-    "Decra Tiles - Stone Coated", "Decra Tiles - Shake", "Decra Tiles - Tile",
-    "Color Bond - 28 Gauge", "Color Bond - 26 Gauge",
-    "Galvalume - 28 Gauge", "Galvalume - 26 Gauge",
-    "Zincalume", "Heritage Shingles", "Others"
-]
-
-ROOFING_ESSENTIALS = [
-    "Half Round Gutters - 0.45mm", "Half Round Gutters - 0.5mm",
-    "Box Gutters - 0.5mm", "Box Gutters - 0.6mm", "Ogee Gutters",
-    "Ridge Cap - Standard 150mm", "Ridge Cap - Wide 200mm",
-    "Ridge Cap - Ventilated", "Ridge Cap - Decorative",
-    "Wall Flashing - 0.4mm", "Barge Flashing - 0.4mm", "Valley Flashing - 0.5mm",
-    "Apron Flashing", "Step Flashing",
-    "Insulated Panel - 25mm", "Insulated Panel - 50mm", "Insulated Panel - 75mm", "Insulated Panel - 100mm"
-]
-
-KENYAN_COUNTIES = [
-    "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo Marakwet", "Embu", "Garissa",
-    "Homa Bay", "Isiolo", "Kajiado", "Kakamega", "Kericho", "Kiambu", "Kilifi",
-    "Kirinyaga", "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia", "Lamu",
-    "Machakos", "Makueni", "Mandera", "Marsabit", "Meru", "Migori", "Mombasa",
-    "Murang'a", "Nairobi", "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua",
-    "Nyeri", "Samburu", "Siaya", "Taita Taveta", "Tana River", "Tharaka Nithi",
-    "Trans Nzoia", "Turkana", "Uasin Gishu", "Vihiga", "Wajir", "West Pokot"
-]
-
-# ========== DATABASE MODELS ==========
+import json
 
 class Admin(db.Model):
     __tablename__ = 'admins'
     
-    id = db.Column(db.String(20), primary_key=True, default=generate_id)
-    username = db.Column(db.String(80), unique=True, nullable=False)
+    id = db.Column(db.String(50), primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    full_name = db.Column(db.String(100))
-    email = db.Column(db.String(120), unique=True)
+    full_name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'full_name': self.full_name,
+            'email': self.email,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
 
 class Profile(db.Model):
-    __tablename__ = 'profile'
+    __tablename__ = 'profiles'
     
-    id = db.Column(db.Integer, primary_key=True, default=1)
+    id = db.Column(db.Integer, primary_key=True)
     company_name = db.Column(db.String(100), default='Tonnie Roofing')
     company_logo = db.Column(db.String(200))
     hero_image = db.Column(db.String(200))
-    tagline = db.Column(db.String(200), default='Professional Roofing & Interior Design Services')
+    tagline = db.Column(db.String(200))
     description = db.Column(db.Text)
     active_since = db.Column(db.String(10), default='2015')
     
-    # CEO details
-    ceo_name = db.Column(db.String(100), default='Antony Mutia')
+    # CEO Info
+    ceo_name = db.Column(db.String(100))
     ceo_photo = db.Column(db.String(200))
-    ceo_title = db.Column(db.String(100), default='Founder & CEO')
+    ceo_title = db.Column(db.String(100))
     ceo_bio = db.Column(db.Text)
-    ceo_phone = db.Column(db.String(20), default='0712454146')
-    ceo_email = db.Column(db.String(100), default='antonymutie7@gmail.com')
+    ceo_phone = db.Column(db.String(20))
+    ceo_email = db.Column(db.String(100))
     
     # Contact
-    contact_phone = db.Column(db.String(20), default='0712454146')
-    contact_whatsapp = db.Column(db.String(20), default='0712454146')
-    contact_emergency = db.Column(db.String(20), default='0712454146')
-    contact_email = db.Column(db.String(100), default='antonymutie7@gmail.com')
-    contact_email2 = db.Column(db.String(100), default='info@tonnieroofing.co.ke')
-    
-    # Social media as JSON
-    social = db.Column(db.JSON, default=[
-        {'platform': 'Facebook', 'icon': '📘', 'url': 'https://facebook.com/tonnieroofing', 'app_url': 'fb://page/tonnieroofing', 'active': True},
-        {'platform': 'TikTok', 'icon': '🎵', 'url': 'https://tiktok.com/@tonnieroofing', 'app_url': 'tiktok://@tonnieroofing', 'active': True},
-        {'platform': 'Instagram', 'icon': '📷', 'url': 'https://instagram.com/tonnieroofing', 'app_url': 'instagram://user?username=tonnieroofing', 'active': True},
-        {'platform': 'WhatsApp', 'icon': '💬', 'url': 'https://wa.me/254712454146', 'app_url': 'whatsapp://send?phone=254712454146', 'active': True}
-    ])
+    contact_phone = db.Column(db.String(20))
+    contact_whatsapp = db.Column(db.String(20))
+    contact_emergency = db.Column(db.String(20))
+    contact_email = db.Column(db.String(100))
+    contact_email2 = db.Column(db.String(100))
     
     # Address
-    address_street = db.Column(db.String(200), default='Kilimani Business Centre')
-    address_city = db.Column(db.String(100), default='Nairobi')
-    address_county = db.Column(db.String(100), default='Nairobi')
-    address_country = db.Column(db.String(100), default='Kenya')
-    address_po_box = db.Column(db.String(100), default='PO Box 12345-00100')
+    address_street = db.Column(db.String(200))
+    address_city = db.Column(db.String(100))
+    address_county = db.Column(db.String(100))
+    address_country = db.Column(db.String(100))
+    address_po_box = db.Column(db.String(100))
     
     # Hours
-    hours_weekdays = db.Column(db.String(100), default='8:00 AM - 6:00 PM')
-    hours_saturday = db.Column(db.String(100), default='9:00 AM - 3:00 PM')
-    hours_sunday = db.Column(db.String(100), default='Closed')
-    hours_emergency = db.Column(db.String(100), default='Call 0712454146')
-    hours_repairs = db.Column(db.String(100), default='Monday to Friday, 8:00 AM - 6:00 PM')
+    hours_weekdays = db.Column(db.String(50))
+    hours_saturday = db.Column(db.String(50))
+    hours_sunday = db.Column(db.String(50))
+    hours_emergency = db.Column(db.String(100))
+    hours_repairs = db.Column(db.String(100))
     
     # Stats
-    stats_projects = db.Column(db.Integer, default=250)
-    stats_clients = db.Column(db.Integer, default=150)
+    stats_projects = db.Column(db.Integer, default=0)
+    stats_clients = db.Column(db.Integer, default=0)
     stats_years = db.Column(db.Integer, default=8)
-    stats_workers = db.Column(db.Integer, default=25)
+    stats_workers = db.Column(db.Integer, default=0)
     stats_counties = db.Column(db.Integer, default=47)
+    
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'company_name': self.company_name,
+            'company_logo': self.company_logo,
+            'hero_image': self.hero_image,
+            'tagline': self.tagline,
+            'description': self.description,
+            'active_since': self.active_since,
+            'ceo': {
+                'name': self.ceo_name,
+                'photo': self.ceo_photo,
+                'title': self.ceo_title,
+                'bio': self.ceo_bio,
+                'phone': self.ceo_phone,
+                'email': self.ceo_email
+            },
+            'contact': {
+                'phone': self.contact_phone,
+                'whatsapp': self.contact_whatsapp,
+                'emergency': self.contact_emergency,
+                'email': self.contact_email,
+                'email2': self.contact_email2
+            },
+            'address': {
+                'street': self.address_street,
+                'city': self.address_city,
+                'county': self.address_county,
+                'country': self.address_country,
+                'po_box': self.address_po_box
+            },
+            'hours': {
+                'weekdays': self.hours_weekdays,
+                'saturday': self.hours_saturday,
+                'sunday': self.hours_sunday,
+                'emergency': self.hours_emergency,
+                'repairs': self.hours_repairs
+            },
+            'stats': {
+                'projects_completed': self.stats_projects,
+                'happy_clients': self.stats_clients,
+                'years_experience': self.stats_years,
+                'skilled_workers': self.stats_workers,
+                'counties_served': self.stats_counties
+            }
+        }
 
 class Service(db.Model):
     __tablename__ = 'services'
     
-    id = db.Column(db.String(20), primary_key=True, default=generate_id)
+    id = db.Column(db.String(50), primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     slug = db.Column(db.String(50), unique=True, nullable=False)
     icon = db.Column(db.String(10))
@@ -118,26 +128,42 @@ class Service(db.Model):
     detail_image = db.Column(db.String(200))
     short_description = db.Column(db.String(200))
     full_description = db.Column(db.Text)
-    features = db.Column(db.JSON, default=[])
+    features = db.Column(db.JSON, default=list)
     active = db.Column(db.Boolean, default=True)
     project_count = db.Column(db.Integer, default=0)
     inquiry_count = db.Column(db.Integer, default=0)
     image_count = db.Column(db.Integer, default=0)
-    color = db.Column(db.String(10))
+    color = db.Column(db.String(20))
     order = db.Column(db.Integer, default=0)
     
-    # Relationships
-    projects = db.relationship('Project', backref='service_ref', lazy=True, cascade='all, delete-orphan')
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'slug': self.slug,
+            'icon': self.icon,
+            'image': self.image,
+            'detail_image': self.detail_image,
+            'short_description': self.short_description,
+            'full_description': self.full_description,
+            'features': self.features,
+            'active': self.active,
+            'project_count': self.project_count,
+            'inquiry_count': self.inquiry_count,
+            'image_count': self.image_count,
+            'color': self.color,
+            'order': self.order
+        }
 
 class Project(db.Model):
     __tablename__ = 'projects'
     
-    id = db.Column(db.String(20), primary_key=True, default=generate_id)
-    service_id = db.Column(db.String(20), db.ForeignKey('services.id', ondelete='SET NULL'))
-    title = db.Column(db.String(100), nullable=False)
-    slug = db.Column(db.String(100), unique=True)
+    id = db.Column(db.String(50), primary_key=True)
+    service_id = db.Column(db.String(50), db.ForeignKey('services.id'))
+    title = db.Column(db.String(200), nullable=False)
+    slug = db.Column(db.String(200), unique=True)
     featured = db.Column(db.Boolean, default=False)
-    short_description = db.Column(db.String(200))
+    short_description = db.Column(db.String(300))
     full_description = db.Column(db.Text)
     
     # Location
@@ -147,62 +173,104 @@ class Project(db.Model):
     location_landmark = db.Column(db.String(200))
     
     # Dates
-    date_start = db.Column(db.String(20))
-    date_end = db.Column(db.String(20))
+    start_date = db.Column(db.String(20))
+    end_date = db.Column(db.String(20))
     
-    # Images (JSON array)
-    images = db.Column(db.JSON, default=[])
+    # Images (stored as JSON)
+    images = db.Column(db.JSON, default=list)
     
-    # Roofing specific
-    roof_type = db.Column(db.String(50))
-    roofing_sheets = db.Column(db.String(100))
-    advantage = db.Column(db.String(200))
-    warranty = db.Column(db.String(50))
+    # Service specific fields (stored as JSON)
+    details = db.Column(db.JSON, default=dict)
     
-    # Materials (JSON array)
-    materials = db.Column(db.JSON, default=[])
-    
-    # Process steps (JSON array)
-    process = db.Column(db.JSON, default=[])
-    
-    # Other
-    property_type = db.Column(db.String(50))
-    client_name = db.Column(db.String(100))
-    project_value = db.Column(db.String(50))
-    tags = db.Column(db.JSON, default=[])
     status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    service = db.relationship('Service', backref='projects')
+    
+    def to_dict(self):
+        service_name = self.service.name if self.service else None
+        return {
+            'id': self.id,
+            'service_id': self.service_id,
+            'service_name': service_name,
+            'title': self.title,
+            'slug': self.slug,
+            'featured': self.featured,
+            'short_description': self.short_description,
+            'full_description': self.full_description,
+            'location': {
+                'county': self.location_county,
+                'area': self.location_area,
+                'exact': self.location_exact,
+                'landmark': self.location_landmark
+            },
+            'dates': {
+                'start': self.start_date,
+                'end': self.end_date
+            },
+            'images': self.images,
+            'details': self.details,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
 
 class Inquiry(db.Model):
     __tablename__ = 'inquiries'
     
-    id = db.Column(db.String(20), primary_key=True, default=generate_id)
+    id = db.Column(db.String(50), primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
-    email = db.Column(db.String(120))
+    email = db.Column(db.String(100))
     service = db.Column(db.String(50))
     subject = db.Column(db.String(200))
     message = db.Column(db.Text)
+    
+    # Location
     location_county = db.Column(db.String(100))
     location_area = db.Column(db.String(100))
+    
     status = db.Column(db.String(20), default='unread')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     read_at = db.Column(db.DateTime)
     replied_at = db.Column(db.DateTime)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'phone': self.phone,
+            'email': self.email,
+            'service': self.service,
+            'subject': self.subject,
+            'message': self.message,
+            'location': {
+                'county': self.location_county,
+                'area': self.location_area
+            },
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
 
 class Setting(db.Model):
     __tablename__ = 'settings'
     
-    id = db.Column(db.Integer, primary_key=True, default=1)
-    admin_count = db.Column(db.Integer, default=0)
-    max_admins = db.Column(db.Integer, default=2)
-    site_name = db.Column(db.String(100), default='Tonnie Roofing')
-    site_url = db.Column(db.String(200))
-    maintenance_mode = db.Column(db.Boolean, default=False)
-    version = db.Column(db.String(10), default='1.0.0')
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(50), unique=True, nullable=False)
+    value = db.Column(db.JSON)
     
-    # Store these as JSON to keep them editable
-    mabati_options = db.Column(db.JSON, default=MABATI_OPTIONS)
-    roofing_essentials = db.Column(db.JSON, default=ROOFING_ESSENTIALS)
-    kenyan_counties = db.Column(db.JSON, default=KENYAN_COUNTIES)
+    @classmethod
+    def get(cls, key, default=None):
+        setting = cls.query.filter_by(key=key).first()
+        return setting.value if setting else default
+    
+    @classmethod
+    def set(cls, key, value):
+        setting = cls.query.filter_by(key=key).first()
+        if setting:
+            setting.value = value
+        else:
+            setting = cls(key=key, value=value)
+            db.session.add(setting)
+        db.session.commit()
